@@ -1,9 +1,18 @@
-export {emptyTemplate,overflowExample,sumExample,setupText}
+export {emptyTemplate,overflowExample,sumExample,constraintSetup, randomSetup}
 
-const setupText =
+const constraintSetup =
 `{-# LANGUAGE TypeApplications #-}
 import Prelude hiding (putChar,putStr,putStrLn,print,getChar,getLine,readLn, until)
 import IOTasks
+
+main :: IO ()
+main = taskCheckWith args program specification
+`
+
+const randomSetup =
+`{-# LANGUAGE TypeApplications #-}
+import Prelude hiding (putChar,putStr,putStrLn,print,getChar,getLine,readLn, until)
+import IOTasks.Random
 
 main :: IO ()
 main = taskCheckWith args program specification

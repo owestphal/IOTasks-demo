@@ -15,11 +15,11 @@ import {haskell} from "@codemirror/legacy-modes/mode/haskell"
 import $ from "jquery"
 import AU from "ansi_up"
 
-import {emptyTemplate,overflowExample,sumExample,setupText} from "./templates.js"
+import {emptyTemplate,overflowExample,sumExample,constraintSetup,randomSetup} from "./templates.js"
 
 let ansi_up = new AU();
 
-const setupLines = (setupText.match(/\n/g) || "").length + 1;
+const setupLines = (constraintSetup.match(/\n/g) || "").length + 1;
 
 const basicSetup = [
   // lineNumbers(),
@@ -52,7 +52,7 @@ const basicSetup = [
 const highlightActive = [highlightActiveLine(),highlightActiveLineGutter()]
 
 let setupView = new EditorView({
-  doc: setupText,
+  doc: constraintSetup,
   extensions:
     [basicSetup
     ,lineNumbers({formatNumber : n => '\xa0\xa0' + n })
@@ -74,10 +74,33 @@ let srcView = new EditorView({
 });
 
 // setup buttons
+document.getElementById("btn-constraints").addEventListener("click",loadSetup(constraintSetup));
+document.getElementById("btn-constraints").addEventListener("click",setupType(true));
+
+document.getElementById("btn-random").addEventListener("click",loadSetup(randomSetup));
+document.getElementById("btn-random").addEventListener("click",setupType(false));
+
 document.getElementById("btn-empty").addEventListener("click",loadExample(emptyTemplate));
 document.getElementById("btn-sum").addEventListener("click",loadExample(sumExample));
 document.getElementById("btn-overflow").addEventListener("click",loadExample(overflowExample));
 document.getElementById("compile-button").addEventListener("click",sendSrc);
+
+let setupWithConstraint = true;
+function setupType(val) {
+  let f = () => {
+    setupWithConstraint = val
+    console.log(setupWithConstraint);
+  }
+  return f
+}
+
+function loadSetup(src) {
+  let f = () => {
+    let len = setupView.state.doc.length
+    setupView.dispatch({changes: {from: 0, to:len, insert: src}})
+  }
+  return f
+}
 
 function loadExample(src) {
   let f = () => {
@@ -95,6 +118,11 @@ function sendSrc() {
   ws.onopen = () => {
     let src = srcView.state.doc.toString();
     ws.send("send_src")
+    if (setupWithConstraint) {
+      ws.send("constraints")
+    } else {
+      ws.send("random")
+    }
     ws.send(src)
     ws.send("EOF")
   }
@@ -106,6 +134,8 @@ function sendSrc() {
     if (str.search(/tests\)/) >= 0) {
       output.innerHTML = "";
     } else if (str.search(/generated/) >= 0) {
+      output.innerHTML = "";
+    } else if (str.search(/\+\+\+/) && !str.search(/generated/) >= 0) {
       output.innerHTML = "";
     } else if (output.innerHTML.search(/compiling/) >= 0) {
       output.innerHTML = "";

@@ -25,15 +25,20 @@ runMain = do
   request <- getLine
   case request of
     "get_info" -> getServerInfo
-    "send_src" -> readSourceAndRun
+    "send_src" -> do
+      context <- getLine
+      case context of
+        "constraints" -> readSourceAndRun constraintContext
+        "random" -> readSourceAndRun randomContext
+        _ -> putStrLn "unknown context"
     _ -> putStrLn "invalid request"
 
-readSourceAndRun :: IO ()
-readSourceAndRun = do
+readSourceAndRun :: Context -> IO ()
+readSourceAndRun ctx = do
   hSetBuffering stdout NoBuffering
   src <- fmap ($ "") loop
   putStrLn "compiling ..."
-  catch (compileAndRun src) $
+  catch (compileAndRun ctx src) $
     \(SomeException e) -> putStrLn $ displayException e
   where
     loop :: IO ShowS
@@ -50,9 +55,9 @@ getServerInfo = do
     "ghc_version" -> putStrLn =<< ghcVersion
     _ -> putStrLn "unknown info"
 
-compileAndRun :: ProgramSrc -> IO ()
-compileAndRun src = do
-  res <- tryCompile src
+compileAndRun :: Context -> ProgramSrc -> IO ()
+compileAndRun ctx src = do
+  res <- tryCompile ctx src
   case res of
     Left msg -> putStrLn msg
     Right p -> p
@@ -61,8 +66,8 @@ type ProgramSrc = String
 type ErrorMsg = String
 type Program = IO ()
 
-tryCompile :: ProgramSrc -> IO (Either ErrorMsg Program)
-tryCompile p = do
+tryCompile :: Context -> ProgramSrc -> IO (Either ErrorMsg Program)
+tryCompile addContext p = do
   withTempFile "/tmp" "Main.hs" $ \temp tempH -> do
     hPutStr tempH (addContext p)
     hClose tempH -- close file handle so GHC can load the file later
@@ -113,13 +118,28 @@ instance Exception CleanedException where
 importModule :: String -> InteractiveImport
 importModule = IIDecl . simpleImportDecl . mkModuleName
 
-addContext :: ProgramSrc -> ProgramSrc
-addContext p =
+type Context = ProgramSrc -> ProgramSrc
+
+constraintContext :: Context
+constraintContext p =
   unlines
     ["{-# LANGUAGE TypeApplications #-}"
     ,"module Main where"
     ,"import Prelude hiding (putChar,putStr,putStrLn,print,getChar,getLine,readLn, until)"
     ,"import IOTasks"
+    ,"import qualified System.IO as SIO"
+    ,"main :: IO ()"
+    ,"main = SIO.hSetBuffering SIO.stdout SIO.NoBuffering >> taskCheckWith args program specification"
+    ]
+  <> p
+
+randomContext :: Context
+randomContext p =
+  unlines
+    ["{-# LANGUAGE TypeApplications #-}"
+    ,"module Main where"
+    ,"import Prelude hiding (putChar,putStr,putStrLn,print,getChar,getLine,readLn, until)"
+    ,"import IOTasks.Random"
     ,"import qualified System.IO as SIO"
     ,"main :: IO ()"
     ,"main = SIO.hSetBuffering SIO.stdout SIO.NoBuffering >> taskCheckWith args program specification"
