@@ -1,0 +1,8 @@
+.stack-work/
+.ghci
+stack.yaml.lock
+
+.git/
+.gitignore
+
+Dockerfile

@@ -1,0 +1,8 @@
+.stack-work/
+*~
+*.lock
+.ghci
+
+.cache/
+site/dist/
+node_modules/

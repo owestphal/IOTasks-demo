@@ -1,0 +1,14 @@
+resolver: nightly-2023-06-20
+
+packages:
+- .
+
+extra-deps:
+- git: https://github.com/owestphal/mini-IOTasks
+  commit: c5676b614c2b305b4607510017b61dabf73cd649
+- git: https://github.com/IagoAbal/haskell-z3
+  commit: b77a17e5eeb7db82656bcbcd66c6e952207e69ca
+- git: https://github.com/owestphal/type-match
+  commit: e5c0d104032d7e6ea147009669cbb95f3291b7bb
+
+# system-ghc: true

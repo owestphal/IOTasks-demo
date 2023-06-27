@@ -1,0 +1,61 @@
+.controls {
+  display: flex;
+  font-weight: bold;
+}
+
+.content {
+  /* display: flex; */
+}
+
+#setupEditor, #srcEditor, #docs {
+  flex-grow: 1;
+}
+
+body {
+  background-color: #efefef;
+  margin: 0px;
+}
+
+h1 {
+    background-color: #053c79;
+    color: white;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+html {
+  background-color: white;
+}
+
+footer {
+  color: #ffffff;
+  background-color: #222222;
+}
+
+.cm-editor {
+  background-color: white;
+}
+
+#srcEditor > .cm-focused {
+  outline-style: none;
+}
+
+button {
+  color: white;
+  background-color: #053c79;
+  border-radius: 4px;
+  transition-duration: 0.4s;
+  border-style: solid;
+  padding: 6px;
+  font-weight: bold;
+  border-color: #053c79;
+}
+
+button:hover {
+  color: #053c79;
+  background-color: white;
+  border-style: solid;
+  border-color: #053c79;
+}
+
+#demo {flex:1;}
+body{display:flex; flex-direction: column;}

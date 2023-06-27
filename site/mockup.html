@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link rel="stylesheet" href="mockup.css">
+</head>
+
+
+<body>
+  <header>
+    <h1>IOTasks Demo</h1>
+  </header>
+
+  <div id="demo">
+    <script type="module" src="mockup.js"></script>
+    <script type="module" src="editor.js"></script>
+
+    <div class="content">
+      <div class="editor">
+        <div id="setupEditor"></div>
+        <hr>
+        <div id="srcEditor"></div>
+      </div>
+      <!-- <iframe src="http://127.0.0.1:8887/IOTasks.html"></iframe> -->
+    </div>
+
+    <div class="examples">
+      Examples:
+      <button id="btn-sum">Summation</button>
+      <button id="btn-overflow">Overflow example</button>
+      <button id="btn-empty">Basic setup</button>
+    </div>
+    <div class=controls>
+      <button id="compile-button">Compile & Run</button>
+      &nbspcompiler:&nbsp
+      <div id="ghc-version"></div>
+    </div>
+    <pre id="output"></pre>
+  </div>
+
+  <footer>&copy 2023</footer>
+</body>
+
+
+</html>
