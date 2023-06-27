@@ -13,11 +13,8 @@ import {StreamLanguage} from "@codemirror/language"
 import {haskell} from "@codemirror/legacy-modes/mode/haskell"
 
 import $ from "jquery"
-import AU from "ansi_up"
 
 import {emptyTemplate,overflowExample,sumExample,constraintSetup,randomSetup} from "./templates.js"
-
-let ansi_up = new AU();
 
 const setupLines = (constraintSetup.match(/\n/g) || "").length + 1;
 
@@ -89,7 +86,6 @@ let setupWithConstraint = true;
 function setupType(val) {
   let f = () => {
     setupWithConstraint = val
-    console.log(setupWithConstraint);
   }
   return f
 }
@@ -112,6 +108,11 @@ function loadExample(src) {
 
 function sendSrc() {
   let ws = new WebSocket("ws://localhost:8080/")
+
+  // reset overflow status
+  document.getElementById("overflow-status").classList.remove("overflow-detected")
+  document.getElementById("overflow-status").classList.add("no-overflow")
+
   let output = document.getElementById("output");
   output.innerHTML="";
 
@@ -130,18 +131,25 @@ function sendSrc() {
   ws.onmessage = evt => {
     let str = evt.data + "\n";
 
-    // test if output should be cleared
-    if (str.search(/tests\)/) >= 0) {
-      output.innerHTML = "";
-    } else if (str.search(/generated/) >= 0) {
-      output.innerHTML = "";
-    } else if (str.search(/\+\+\+/) && !str.search(/generated/) >= 0) {
-      output.innerHTML = "";
-    } else if (output.innerHTML.search(/compiling/) >= 0) {
-      output.innerHTML = "";
+    // overflow detected?
+    if (str.search(/Overflow of Int range detected/) >= 0) {
+      document.getElementById("overflow-status").classList.remove("no-overflow")
+      document.getElementById("overflow-status").classList.add("overflow-detected")
     }
+    else {
+      // test if output should be cleared
+      if (str.search(/tests\)/) >= 0) {
+        output.innerHTML = "";
+      } else if (str.search(/generated/) >= 0) {
+        output.innerHTML = "";
+      } else if (str.search(/\+\+\+/) >= 0 && !str.search(/generated/) >= 0) {
+        output.innerHTML = "";
+      } else if (output.innerHTML.search(/compiling/) >= 0) {
+        output.innerHTML = "";
+      }
 
-    output.innerHTML += ansi_up.ansi_to_html(str);
+      output.innerHTML += str;
+    }
   }
 
   window.onbeforeunload = evt => {

@@ -7,6 +7,16 @@
   /* display: flex; */
 }
 
+#overflow-status.no-overflow  {
+  font-weight: normal;
+  background-color: red;
+}
+
+#overflow-status.overflow-detected  {
+  font-weight: normal;
+  background-color: green;
+}
+
 #setupEditor, #srcEditor, #docs {
   flex-grow: 1;
 }
