@@ -121,28 +121,30 @@ importModule = IIDecl . simpleImportDecl . mkModuleName
 type Context = ProgramSrc -> ProgramSrc
 
 constraintContext :: Context
-constraintContext p =
-  unlines
-    ["{-# LANGUAGE TypeApplications #-}"
-    ,"module Main where"
-    ,"import Prelude hiding (putChar,putStr,putStrLn,print,getChar,getLine,readLn, until)"
-    ,"import IOTasks"
-    ,"import qualified System.IO as SIO"
-    ,"main :: IO ()"
-    ,"main = SIO.hSetBuffering SIO.stdout SIO.NoBuffering >> taskCheckWith args program specification"
-    ]
-  <> p
+constraintContext = context ConstraintContext
 
 randomContext :: Context
-randomContext p =
+randomContext = context RandomContext
+
+data ContextType = ConstraintContext | RandomContext
+
+ioTasksImport :: ContextType -> String
+ioTasksImport ConstraintContext = "IOTasks"
+ioTasksImport RandomContext = "IOTasks.Random"
+
+context :: ContextType -> Context
+context ctxTy p =
   unlines
     ["{-# LANGUAGE TypeApplications #-}"
     ,"module Main where"
     ,"import Prelude hiding (putChar,putStr,putStrLn,print,getChar,getLine,readLn, until)"
-    ,"import IOTasks.Random"
+    ,"import " ++ ioTasksImport ctxTy
     ,"import qualified System.IO as SIO"
+    ,"import Control.Concurrent"
     ,"main :: IO ()"
-    ,"main = SIO.hSetBuffering SIO.stdout SIO.NoBuffering >> taskCheckWith args program specification"
+    ,"main = do"
+    ,"  print =<< getNumCapabilities"
+    ,"  SIO.hSetBuffering SIO.stdout SIO.NoBuffering >> taskCheckWith args program specification"
     ]
   <> p
 
