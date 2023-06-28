@@ -2,12 +2,7 @@
   "dependencies": {
     "@codemirror/language": "^6.3.1",
     "@codemirror/legacy-modes": "^6.3.0",
-    "ansi_up": "^5.1.0",
-    "ansi-html": "^0.0.9",
-    "ansi-to-html": "^0.7.2",
-    "ansi-up": "^1.0.0",
     "codemirror": "^6.0.1",
-    "jquery": "^3.6.1",
     "templates.js": "^0.3.11"
   }
 }

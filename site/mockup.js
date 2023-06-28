@@ -1,16 +1,16 @@
-import $ from "jquery"
-
-
-let ws = new WebSocket("ws://localhost:8080/")
 let ghcVersion = document.getElementById("ghc-version");
 
 ghcVersion.innerHTML = "???";
+getGhcVersion()
 
-ws.onopen = () => {
-  ws.send("get_info")
-  ws.send("ghc_version")
-}
+function getGhcVersion() {
+  let ws = new WebSocket("ws://localhost:8080/")
+  ws.onopen = () => {
+    ws.send("get_info")
+    ws.send("ghc_version")
+  }
 
-ws.onmessage = evt => {
-  ghcVersion.innerHTML = evt.data;
+  ws.onmessage = evt => {
+    ghcVersion.innerHTML = evt.data;
+  }
 }

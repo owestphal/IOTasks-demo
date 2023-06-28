@@ -14,7 +14,17 @@ import {haskell} from "@codemirror/legacy-modes/mode/haskell"
 
 import $ from "jquery"
 
-import {emptyTemplate,overflowExample,sumExample,constraintSetup,randomSetup} from "./templates.js"
+import { emptyTemplate
+       , productExample
+       , sumExample
+       , sumExampleWithOutput
+       , sumToZero
+       , singlePath
+       , fullTree
+       , stringExample
+       , constraintSetup
+       , randomSetup
+       } from "./templates.js"
 
 const setupLines = (constraintSetup.match(/\n/g) || "").length + 1;
 
@@ -79,7 +89,12 @@ document.getElementById("btn-random").addEventListener("click",setupType(false))
 
 document.getElementById("btn-empty").addEventListener("click",loadExample(emptyTemplate));
 document.getElementById("btn-sum").addEventListener("click",loadExample(sumExample));
-document.getElementById("btn-overflow").addEventListener("click",loadExample(overflowExample));
+document.getElementById("btn-sum2").addEventListener("click",loadExample(sumExampleWithOutput));
+document.getElementById("btn-sumToZero").addEventListener("click",loadExample(sumToZero));
+document.getElementById("btn-overflow").addEventListener("click",loadExample(productExample));
+document.getElementById("btn-singlePath").addEventListener("click",loadExample(singlePath));
+document.getElementById("btn-fullTree").addEventListener("click",loadExample(fullTree));
+document.getElementById("btn-stringExample").addEventListener("click",loadExample(stringExample));
 document.getElementById("compile-button").addEventListener("click",sendSrc);
 
 let setupWithConstraint = true;
@@ -113,6 +128,11 @@ function sendSrc() {
   document.getElementById("overflow-status").classList.remove("overflow-detected")
   document.getElementById("overflow-status").classList.add("no-overflow")
 
+  // change start to stop button
+  document.getElementById("compile-button").classList.add("inactive")
+  document.getElementById("stop-button").classList.remove("inactive")
+  document.getElementById("stop-button").addEventListener("click",stopExecution(ws),{once:true})
+
   let output = document.getElementById("output");
   output.innerHTML="";
 
@@ -130,7 +150,6 @@ function sendSrc() {
 
   ws.onmessage = evt => {
     let str = evt.data + "\n";
-
     // overflow detected?
     if (str.search(/Overflow of Int range detected/) >= 0) {
       document.getElementById("overflow-status").classList.remove("no-overflow")
@@ -142,7 +161,9 @@ function sendSrc() {
         output.innerHTML = "";
       } else if (str.search(/generated/) >= 0) {
         output.innerHTML = "";
-      } else if (str.search(/\+\+\+/) >= 0 && !str.search(/generated/) >= 0) {
+      } else if (str.search(/\+\+\+/) >= 0 && !(output.innerHTML.search(/generated/) >= 0)) {
+        output.innerHTML = "";
+      } else if (str.search(/\*\*\*/) >= 0 && !(output.innerHTML.search(/generated/) >= 0)) {
         output.innerHTML = "";
       } else if (output.innerHTML.search(/compiling/) >= 0) {
         output.innerHTML = "";
@@ -152,7 +173,17 @@ function sendSrc() {
     }
   }
 
-  window.onbeforeunload = evt => {
-    socket.close()
+  ws.onclose = evt => {
+    document.getElementById("stop-button").click()
   }
 };
+
+function stopExecution(ws) {
+  let f = () => {
+    ws.close()
+    document.getElementById("stop-button").classList.add("inactive")
+    document.getElementById("compile-button").classList.remove("inactive")
+    document.getElementById("stop-button").removeEventListener("click",stopExecution(ws))
+  }
+  return f
+}

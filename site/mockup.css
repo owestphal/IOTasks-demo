@@ -3,6 +3,10 @@
   font-weight: bold;
 }
 
+.controls > .inactive {
+  display: none;
+}
+
 .content {
   /* display: flex; */
 }
