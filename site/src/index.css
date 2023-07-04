@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.no-overflow  {
+  @apply bg-red-600
+}
+
+.overflow-detected  {
+  @apply bg-green-600;
+}
+
+.cm-editor {
+  @apply bg-white;
+}
+
+#srcEditor > .cm-focused {
+  @apply outline-none;
+}

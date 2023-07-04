@@ -129,8 +129,8 @@ function sendSrc() {
   document.getElementById("overflow-status").classList.add("no-overflow")
 
   // change start to stop button
-  document.getElementById("compile-button").classList.add("inactive")
-  document.getElementById("stop-button").classList.remove("inactive")
+  document.getElementById("compile-button").classList.add("hidden")
+  document.getElementById("stop-button").classList.remove("hidden")
   document.getElementById("stop-button").addEventListener("click",stopExecution(ws),{once:true})
 
   let output = document.getElementById("output");
@@ -181,8 +181,8 @@ function sendSrc() {
 function stopExecution(ws) {
   let f = () => {
     ws.close()
-    document.getElementById("stop-button").classList.add("inactive")
-    document.getElementById("compile-button").classList.remove("inactive")
+    document.getElementById("stop-button").classList.add("hidden")
+    document.getElementById("compile-button").classList.remove("hidden")
     document.getElementById("stop-button").removeEventListener("click",stopExecution(ws))
   }
   return f

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html class="bg-white font-sans">
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link rel="stylesheet" href="index.css">
+</head>
+
+
+<body class="bg-gray-200 m-0 flex flex-col mx-5">
+  <header>
+    <h1 class="text-white bg-sky-900 font-extrabold text-2xl rounded p-2">
+      IOTasks - Demo
+    </h1>
+  </header>
+
+  <div class="flex-1">
+    <script type="module" src="index.js"></script>
+    <script type="module" src="editor.js"></script>
+
+    <div class="grow">
+      <div class="editor">
+        <div id="setupEditor"></div>
+        <hr class=border-2>
+        <div id="srcEditor"></div>
+      </div>
+    </div>
+
+    <div class="input-generation">
+      Input generation:
+      <button id="btn-constraints" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Constraint based</button>
+      <button id="btn-random" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Random</button>
+    </div>
+    <div class="examples">
+      Examples:
+      <button id="btn-sum" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Summation</button>
+      <button id="btn-sum2" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Summation with optional output</button>
+      <button id="btn-sumToZero" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Sum to zero</button>
+      <button id="btn-overflow" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Product (overflow checks)</button>
+      <button id="btn-singlePath" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Single path</button>
+      <button id="btn-fullTree" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Exponentially many sat. paths</button>
+      <button id="btn-stringExample" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">String output</button>
+      <button id="btn-empty" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Basic setup</button>
+    </div>
+    <div class="flex font-bold">
+      <button id="compile-button" class="w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Compile & Run</button>
+      <button id="stop-button" class="hidden w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Stop</button>
+      <div id="overflow-status" class="font-normal no-overflow rounded p-2">overflow detected</div>
+      <div class="py-2">
+        &nbspcompiler:&nbsp
+      </div>
+      <div id="ghc-version" class="py-2"></div>
+    </div>
+    <pre id="output" class="font-mono italic"> </pre>
+  </div>
+
+  <footer class="text-white bg-gray-700 rounded ">&copy 2023</footer>
+</body>
+
+
+</html>

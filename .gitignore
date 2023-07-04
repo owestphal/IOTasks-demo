@@ -4,5 +4,6 @@
 .ghci
 
 .cache/
+.parcel-cache/
 site/dist/
 node_modules/
