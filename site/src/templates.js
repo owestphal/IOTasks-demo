@@ -14,7 +14,7 @@ export
 const constraintSetup =
 `{-# LANGUAGE TypeApplications #-}
 import Prelude hiding (putChar,putStr,putStrLn,print,getChar,getLine,readLn, until)
-import IOTasks
+import Test.IOTasks
 
 main :: IO ()
 main = taskCheckWith args program specification
@@ -23,7 +23,7 @@ main = taskCheckWith args program specification
 const randomSetup =
 `{-# LANGUAGE TypeApplications #-}
 import Prelude hiding (putChar,putStr,putStrLn,print,getChar,getLine,readLn, until)
-import IOTasks.Random
+import Test.IOTasks.Random
 
 main :: IO ()
 main = taskCheckWith args program specification

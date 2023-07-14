@@ -7,33 +7,23 @@
   <link rel="stylesheet" href="index.css">
 </head>
 
+<script type="module" src="index.js"></script>
+<script type="module" src="editor.js"></script>
 
-<body class="bg-gray-200 m-0 flex flex-col mx-5">
-  <header>
-    <h1 class="text-white bg-sky-900 font-extrabold text-2xl rounded p-2">
-      IOTasks - Demo
-    </h1>
-  </header>
+<body class="bg-gray-200 text-gray-700 m-0 mx-5 h-screen">
 
-  <div class="flex-1">
-    <script type="module" src="index.js"></script>
-    <script type="module" src="editor.js"></script>
+  <div class="h-4/7 grid grid-cols-4 grid-rows-layout-top">
 
-    <div class="grow">
-      <div class="editor">
-        <div id="setupEditor"></div>
-        <hr class=border-2>
-        <div id="srcEditor"></div>
-      </div>
-    </div>
+    <header class="col-span-full">
+      <h1 class="text-white bg-sky-900 font-extrabold text-2xl rounded p-2">
+        IOTasks - Demo
+      </h1>
+    </header>
 
-    <div class="input-generation">
-      Input generation:
-      <button id="btn-constraints" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Constraint based</button>
-      <button id="btn-random" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Random</button>
-    </div>
-    <div class="examples">
-      Examples:
+    <div id="setupEditor" class="col-span-3 p-0"></div>
+
+    <div class="row-span-2 flex flex-col overflow-auto">
+      <span class="p-2 font-black text-center">Examples</span>
       <button id="btn-sum" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Summation</button>
       <button id="btn-sum2" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Summation with optional output</button>
       <button id="btn-sumToZero" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Sum to zero</button>
@@ -43,20 +33,64 @@
       <button id="btn-stringExample" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">String output</button>
       <button id="btn-empty" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Basic setup</button>
     </div>
-    <div class="flex font-bold">
-      <button id="compile-button" class="w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Compile & Run</button>
-      <button id="stop-button" class="hidden w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Stop</button>
-      <div id="overflow-status" class="font-normal no-overflow rounded p-2">overflow detected</div>
-      <div class="py-2">
-        &nbspcompiler:&nbsp
-      </div>
-      <div id="ghc-version" class="py-2"></div>
-    </div>
-    <pre id="output" class="font-mono italic"> </pre>
+
+    <div id="srcEditor" class="min-h-0 col-span-3"></div>
   </div>
 
-  <footer class="text-white bg-gray-700 rounded ">&copy 2023</footer>
+  <div class="grid h-3/7 grid-cols-5 grid-rows-layout-bottom">
+    <span class="p-2">Input generation:</span>
+    <div class="row-start-2 ml-2">
+      <button id="btn-constraints" class="ring text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Constraint based</button>
+      <button id="btn-random" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Random</button>
+    </div>
+
+    <div class="py-2">
+      <span>compiler:</span>
+      <span id="ghc-version" class="px-1 font-bold"></span>
+    </div>
+
+    <div class="row-start-2">
+      <button id="compile-button" class="text-white w-32 font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Compile</button>
+    </div>
+
+    <div class="flex flex-row gap-3 justify-between mt-2">
+      <button id="run-button" class="grayscale w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Run</button>
+      <button id="stop-button" class="hidden w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Stop</button>
+      <button id="btn-more" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900"></button>
+    </div>
+
+    <div id="div-input" class="hidden grayscale row-span-2 ml-2 min-h-max overflow-auto">
+      <button id="btn-sample-input" class="my-2 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">View sample inputs</button>
+      <div id="number-of-inputs" class="">
+        number of inputs:
+        <input id="inp-inputs" type="number" min="1" value="5" class="border-solid border border-gray-700 w-12 h-6 text-center">
+      </div>
+    </div>
+
+    <div id="div-smt" class="hidden grayscale row-span-2 ml-2 min-h-max overflow-auto">
+      <button id="btn-smt-code" class="my-2 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">show SMT problems</button>
+      <div>
+        <span id="path-length">
+          path length:
+          <input id="inp-length" type="number" min="1" value="3" class="border-solid border border-gray-700 w-12 h-6, text-center">
+        </span>
+        <span id="smt-controls" class="hidden">
+          <span id="problem-count" class="pl-2"></span>
+          <button id="btn-problem-backwards" class="text-white font-bold rounded px-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900"><</button>
+          <button id="btn-problem-forwards" class="text-white font-bold rounded px-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">></button>
+        </span>
+      </div>
+    </div>
+
+    <div class="col-start-3 row-start-2">
+      <div id="overflow-status" class="p-2 w-fit font-normal text-black no-overflow rounded text-center">overflow detected</div>
+    </div>
+
+    <div id="output" class="font-mono whitespace-pre-wrap overflow-auto italic col-span-3 bg-gray-100 rounded m-2 mr-1 shadow-2xl"></div>
+    <div id="output-more" class="font-mono whitespace-pre-wrap overflow-auto italic col-span-2 bg-gray-100 rounded m-2 ml-1 shadow-2xl"></div>
+
+    <footer class="col-span-full text-white bg-gray-700 rounded ">&copy 2023</footer>
+
+  </div>
 </body>
-
-
 </html>

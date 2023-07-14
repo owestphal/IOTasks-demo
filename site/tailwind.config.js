@@ -3,7 +3,16 @@ module.exports = {
   content: ["./src/**/*.{html,js}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      height: {
+        '4/7': '57%',
+        '3/7': '43%'
+      },
+      gridTemplateRows: {
+        'layout-top': 'auto auto 1fr',
+        'layout-bottom': 'auto auto 1fr auto'
+      },
+    },
   },
   plugins: [],
 }

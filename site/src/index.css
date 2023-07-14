@@ -12,6 +12,11 @@
 
 .cm-editor {
   @apply bg-white;
+  @apply h-full;
+}
+
+.cm-gutterElement[style*="height: 0px"] {
+  @apply hidden !important;
 }
 
 #srcEditor > .cm-focused {

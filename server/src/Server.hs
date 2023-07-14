@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeOperators #-}
 module Server (runMain) where
 
 -- compilation imports
@@ -18,7 +22,20 @@ import Data.Text.Lazy (pack, unpack, replace)
 import Control.Monad.IO.Class (liftIO)
 import System.IO.Temp (withTempFile)
 import System.IO (hPutStr,hClose, hSetBuffering, stdout, BufferMode(..))
-import Control.Exception (catch, throw, Exception(..), SomeException(..))
+import Control.Exception (bracket, catch, throw, Exception(..), SomeException(..))
+import Control.Concurrent.Async (race, concurrently)
+import Control.Monad (void, forM_, replicateM_)
+import Control.Concurrent.STM
+
+import Test.IOTasks as Constraints (Specification, Args(..))
+import Test.IOTasks.Random as Random (Args(..), genInput)
+import Test.IOTasks.Constraints (paths,constraintTree, pathDepth)
+import Test.IOTasks.ValueSet (Size(..))
+import Test.IOTasks.Z3 (evalPathScript, SatResult (..), satPathsQ, findPathInput)
+
+import Test.QuickCheck (generate)
+
+import Context
 
 runMain :: IO ()
 runMain = do
@@ -28,18 +45,16 @@ runMain = do
     "send_src" -> do
       context <- getLine
       case context of
-        "constraints" -> readSourceAndRun constraintContext
-        "random" -> readSourceAndRun randomContext
+        "constraints" -> readSourceAndWait ConstraintContext
+        "random" -> readSourceAndWait RandomContext
         _ -> putStrLn "unknown context"
     _ -> putStrLn "invalid request"
 
-readSourceAndRun :: Context -> IO ()
-readSourceAndRun ctx = do
+readSourceAndWait :: ContextType a -> IO ()
+readSourceAndWait ctx = do
   hSetBuffering stdout NoBuffering
   src <- fmap ($ "") loop
-  putStrLn "compiling ..."
-  catch (compileAndRun ctx src) $
-    \(SomeException e) -> putStrLn $ displayException e
+  compileAndWait ctx src
   where
     loop :: IO ShowS
     loop = do
@@ -55,21 +70,136 @@ getServerInfo = do
     "ghc_version" -> putStrLn =<< ghcVersion
     _ -> putStrLn "unknown info"
 
-compileAndRun :: Context -> ProgramSrc -> IO ()
-compileAndRun ctx src = do
+compileAndWait :: ContextType a -> ProgramSrc -> IO ()
+compileAndWait ctx src = do
+  putStrLn "compiling ..."
   res <- tryCompile ctx src
   case res of
-    Left msg -> putStrLn msg
-    Right p -> p
+    Left msg -> putStrLn "INFO: failure" >> putStrLn msg
+    Right (p,s,a) -> do
+      putStrLn "INFO: success"
+      sessionLoop $ newSession ctx p s a
+
+data SessionState a where
+  ConstraintSession :: Specification -> Constraints.Args -> IO () -> SessionState ConstraintType
+  RandomSession :: Specification -> Random.Args -> IO () -> SessionState RandomType
+
+newSession :: ContextType a -> IO () -> Specification -> ContextArgs a -> SessionState a
+newSession RandomContext = newRandomSession
+newSession ConstraintContext = newConstraintSession
+
+newConstraintSession :: IO () -> Specification -> Constraints.Args -> SessionState ConstraintType
+newConstraintSession p s a = ConstraintSession s a p
+
+newRandomSession :: IO () -> Specification -> Random.Args -> SessionState RandomType
+newRandomSession p s a = RandomSession s a p
+
+mainProgram :: SessionState a -> IO ()
+mainProgram (RandomSession _ _ p) = p
+mainProgram (ConstraintSession _ _ p) = p
+
+sessionLoop :: forall a. SessionState a -> IO ()
+sessionLoop st = case st of
+  RandomSession{} -> randomSession
+  ConstraintSession{} -> constraintsSession
+  where
+    randomSession :: (a ~ RandomType) => IO ()
+    randomSession = do
+      cmd <- getLine
+      case cmd of
+        "run" -> runProgram (mainProgram st) >> randomSession
+        "sample_input" -> sampleInput st >> randomSession
+        "exit" -> pure ()
+        _ -> error "unknown command"
+    constraintsSession :: (a ~ ConstraintType) => IO ()
+    constraintsSession = do
+      cmd <- getLine
+      case cmd of
+        "run" -> runProgram (mainProgram st) >> constraintsSession
+        "smt_code" -> smtCode st >> constraintsSession
+        "sample_input" -> sampleInput st >> constraintsSession
+        "exit" -> pure ()
+        _ -> error "unknown command"
+
+runProgram :: IO () -> IO ()
+runProgram p = do
+  abortable p
+  putStrLn "INFO: terminated"
+
+abortable :: IO a -> IO ()
+abortable p = void $ race waitForAbort $ do
+  void p `catch` (\(SomeException e) -> putStrLn $ displayException e)
+
+waitForAbort :: IO ()
+waitForAbort = do
+  msg <- getLine
+  case msg of
+    "abort" -> pure ()
+    _ -> waitForAbort
+
+data Abort = Abort deriving Show
+instance Exception Abort
+
+sampleInput :: SessionState a -> IO ()
+sampleInput (RandomSession s Random.Args{..} _ )  = do
+  n <- readLn
+  abortable $ replicateM_ n $ do
+    i <- generate $ Random.genInput s maxInputLength (Size valueSize (fromIntegral $ valueSize `div` 5)) maxNegative
+    print i
+  putStrLn "INFO: terminated"
+sampleInput (ConstraintSession s Constraints.Args{..} _ )  = do
+  n <- readLn
+  m <- readLn
+  abortable $ do
+    nVar <- newTVarIO (Just m)
+    qVar <- newTQueueIO
+    let
+      outputInputs :: Int -> IO ()
+      outputInputs 0 = do
+        atomically $ writeTVar nVar (Just 0)
+      outputInputs x = do
+        mp <- atomically $ readTQueue qVar
+        case mp of
+          Just p -> do
+            res <- findPathInput solverTimeout p valueSize solverMaxSeqLength checkOverflows
+            case res of
+              SAT i -> print i >> outputInputs (x-1)
+              Timeout -> outputInputs x
+              NotSAT -> outputInputs x
+          Nothing -> pure ()
+    concurrently
+      (satPathsQ nVar solverTimeout (constraintTree maxNegative s) maxIterationUnfold solverMaxSeqLength checkOverflows qVar)
+      (outputInputs n)
+  putStrLn "INFO: terminated"
+
+smtCode :: SessionState ConstraintType -> IO ()
+smtCode (ConstraintSession s Constraints.Args{..} _) = do
+  n <- readLn
+  abortable $ do
+    let ps = filter ((== n) . pathDepth) $ paths n $ constraintTree maxNegative s
+    forM_ ps $ \p -> do
+      res <- evalPathScript solverTimeout p valueSize solverMaxSeqLength checkOverflows
+      outputSMTProblem res
+      putStrLn "INFO: end of smt problem"
+  putStrLn "INFO: terminated"
+
+outputSMTProblem :: (SatResult [String], String) -> IO ()
+outputSMTProblem (res, code) = do
+  putStrLn code
+  putStr "result: "
+  putStrLn $ case res of
+    SAT i -> unlines ["sat", "input: " ++ show i]
+    NotSAT -> "unsat"
+    Timeout -> "timeout"
 
 type ProgramSrc = String
 type ErrorMsg = String
 type Program = IO ()
 
-tryCompile :: Context -> ProgramSrc -> IO (Either ErrorMsg Program)
-tryCompile addContext p = do
+tryCompile :: forall a. ContextType a -> ProgramSrc -> IO (Either ErrorMsg (Program, Specification, ContextArgs a))
+tryCompile ctx p = do
   withTempFile "/tmp" "Main.hs" $ \temp tempH -> do
-    hPutStr tempH (addContext p)
+    hPutStr tempH (context ctx p)
     hClose tempH -- close file handle so GHC can load the file later
 
     logRef <- newIORef ""
@@ -89,6 +219,7 @@ tryCompile addContext p = do
         addTarget =<< guessTarget temp Nothing Nothing
         load LoadAllTargets
 
+
         msg <- liftIO $ readIORef logRef
         if msg == "" -- no error hopefully means Main is loaded successfully
           then do
@@ -96,9 +227,10 @@ tryCompile addContext p = do
               [importModule "Main"
               ,importModule "System.IO"
               ]
-            mainProgram <- unsafeCoerce @HValue @(IO ()) <$> compileExpr "main"
+            (mainPlain, spec, args) <- unsafeCoerce @HValue @(IO (), Specification, ContextArgs a) <$> compileExpr "(main, specification, args)"
+            let mainProgram = catch @SomeException mainPlain (rethrowCleaned temp)
             msg <- liftIO $ readIORef logRef
-            if msg == "" then pure $ Right (catch @SomeException mainProgram (rethrowCleaned temp)) else pure $ Left msg
+            if msg == "" then pure $ Right (mainProgram, spec, args) else pure $ Left msg
           else do
             pure $ Left msg
   where
@@ -117,36 +249,6 @@ instance Exception CleanedException where
 
 importModule :: String -> InteractiveImport
 importModule = IIDecl . simpleImportDecl . mkModuleName
-
-type Context = ProgramSrc -> ProgramSrc
-
-constraintContext :: Context
-constraintContext = context ConstraintContext
-
-randomContext :: Context
-randomContext = context RandomContext
-
-data ContextType = ConstraintContext | RandomContext
-
-ioTasksImport :: ContextType -> String
-ioTasksImport ConstraintContext = "IOTasks"
-ioTasksImport RandomContext = "IOTasks.Random"
-
-context :: ContextType -> Context
-context ctxTy p =
-  unlines
-    ["{-# LANGUAGE TypeApplications #-}"
-    ,"module Main where"
-    ,"import Prelude hiding (putChar,putStr,putStrLn,print,getChar,getLine,readLn, until)"
-    ,"import " ++ ioTasksImport ctxTy
-    ,"import qualified System.IO as SIO"
-    ,"import Control.Concurrent"
-    ,"main :: IO ()"
-    ,"main = do"
-    ,"  print =<< getNumCapabilities"
-    ,"  SIO.hSetBuffering SIO.stdout SIO.NoBuffering >> taskCheckWith args program specification"
-    ]
-  <> p
 
 ghcVersion :: IO String
 ghcVersion =
