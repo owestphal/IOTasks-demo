@@ -303,21 +303,21 @@ function runProgram() {
             case str.search(/Overflow of Int range detected/) >= 0:
               document.getElementById("overflow-status").classList.remove("no-overflow")
               document.getElementById("overflow-status").classList.add("overflow-detected")
-              break;
+              return;
             // test if output should be cleared
-            case (str.search(/tests\)/) >= 0):
+            case str.search(/tests\)/) >= 0: // during testing
               output.innerHTML = "";
               break;
-            case (str.search(/generated/) >= 0):
+            case str.search(/generated/) >= 0: // finished constant based testing
               output.innerHTML = "";
               break;
-            case (str.search(/\+\+\+/) >= 0 && !(output.innerHTML.search(/generated/) >= 0)):
+            case str.search(/overflows/) >= 0 && output.innerHTML.search(/generated/) < 0: // finished random testing, all outcomes + overflows
               output.innerHTML = "";
               break;
-            case (str.search(/\*\*\*/) >= 0 && !(output.innerHTML.search(/generated/) >= 0)):
+            case str.search(/\+\+\+/) >= 0 && output.innerHTML.search(/generated/) < 0 && output.innerHTML.search(/overflows/) < 0: // finished random testing success (no overflows)
               output.innerHTML = "";
               break;
-            case (output.innerHTML.search(/compiling/) >= 0):
+            case str.search(/\*\*\*/) >= 0 && output.innerHTML.search(/generated/) < 0 && output.innerHTML.search(/overflows/) < 0: // finished random testing failure/gave up <(no overflows)
               output.innerHTML = "";
               break;
             }
