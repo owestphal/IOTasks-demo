@@ -22,10 +22,11 @@ import Data.Text.Lazy (pack, unpack, replace)
 import Control.Monad.IO.Class (liftIO)
 import System.IO.Temp (withTempFile)
 import System.IO (hPutStr,hClose, hSetBuffering, stdout, BufferMode(..))
-import Control.Exception (bracket, catch, throw, Exception(..), SomeException(..))
-import Control.Concurrent.Async (race, concurrently)
+import Control.Exception (catch, throw, Exception(..), SomeException(..))
+import Control.Concurrent.Async (race_, concurrently_)
 import Control.Monad (void, forM_, replicateM_)
 import Control.Concurrent.STM
+import System.Timeout (timeout)
 
 import Test.IOTasks as Constraints (Specification, Args(..))
 import Test.IOTasks.Random as Random (Args(..), genInput)
@@ -78,7 +79,8 @@ compileAndWait ctx src = do
     Left msg -> putStrLn "INFO: failure" >> putStrLn msg
     Right (p,s,a) -> do
       putStrLn "INFO: success"
-      sessionLoop $ newSession ctx p s a
+      void $ timeout (minutes 10) (sessionLoop $ newSession ctx p s a)
+  where minutes = (* (60 * 10^6))
 
 data SessionState a where
   ConstraintSession :: Specification -> Constraints.Args -> IO () -> SessionState ConstraintType
@@ -127,7 +129,7 @@ runProgram p = do
   putStrLn "INFO: terminated"
 
 abortable :: IO a -> IO ()
-abortable p = void $ race waitForAbort $ do
+abortable p = race_ waitForAbort $ do
   void p `catch` (\(SomeException e) -> putStrLn $ displayException e)
 
 waitForAbort :: IO ()
@@ -167,7 +169,7 @@ sampleInput (ConstraintSession s Constraints.Args{..} _ )  = do
               Timeout -> outputInputs x
               NotSAT -> outputInputs x
           Nothing -> pure ()
-    concurrently
+    concurrently_
       (satPathsQ nVar solverTimeout (constraintTree maxNegative s) maxIterationUnfold solverMaxSeqLength checkOverflows qVar)
       (outputInputs n)
   putStrLn "INFO: terminated"
