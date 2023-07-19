@@ -46,10 +46,10 @@ args = stdArgs
 
 program :: MonadTeletype io => io ()
 program = do
-  n <- readLn @_ @Integer
+  n <- readLn
   let
     loop s m
-      | m == n  = print @_ @Integer s
+      | m == n  = print s
       | otherwise = do
         x <- readLn
         loop (s+x) (m+1)
@@ -75,10 +75,10 @@ args = stdArgs
 
 program :: MonadTeletype io => io ()
 program = do
-  n <- readLn @_ @Integer
+  n <- readLn
   let
     loop s m
-      | m == n  = print @_ @Integer s
+      | m == n  = print s
       | otherwise = do
         x <- readLn
         loop (s+x) (m+1)
@@ -105,11 +105,11 @@ args = stdArgs
 
 program :: MonadTeletype io => io ()
 program = do
-  x <- readLn @_ @Integer
+  x <- readLn
   loop x 1
   where
     loop x n = do
-      y <- readLn @_ @Integer
+      y <- readLn
       let n' = n+1
       if x + y == 0
         then print $ n'
@@ -158,10 +158,13 @@ args = stdArgs {checkOverflows = True}
 
 program :: MonadTeletype io => io ()
 program = do
-  n <- readLn @_ @Integer
+  n <- readLn
   let
+    -- change first parameter to Int to trigger rejection of the
+    -- program with checkOverflows = False
+    loop :: MonadTeletype io => Integer -> Integer -> io ()
     loop p m
-      | m == n  = print @_ @Integer p
+      | m == n  = print p
       | otherwise = do
         x <- readLn
         loop (p*x) (m+1)
