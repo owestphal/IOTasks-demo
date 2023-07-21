@@ -24,6 +24,8 @@ import { emptyTemplate
        , randomSetup
        } from "./templates.js"
 
+import {websocketURL} from "./server-data.js"
+
 const setupLines = (constraintSetup.match(/\n/g) || "").length + 1;
 
 const basicSetup = [
@@ -238,7 +240,7 @@ function sendSrc() {
     document.getElementById("overflow-status").classList.remove("overflow-detected")
     document.getElementById("overflow-status").classList.add("no-overflow")
 
-    appState.ws = new WebSocket("ws://localhost:8080/")
+    appState.ws = new WebSocket(websocketURL)
 
     appState.ws.onopen = () => {
       let src = srcView.state.doc.toString();
@@ -275,7 +277,6 @@ function sendSrc() {
 }
 
 function runProgram() {
-  console.log(appState);
   if (appState.armed && !appState.busy) {
     appState.busy = true
     startToStop()
