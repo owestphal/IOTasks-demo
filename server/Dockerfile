@@ -31,7 +31,9 @@ COPY stack.yaml package.yaml  ./
 
 RUN stack build --dependencies-only
 
-COPY . ./
+COPY src src/
+COPY app app/
+COPY Setup.hs ./
 RUN stack install &&\
     # create startup script with package GHC_PACKAGE_PATH set
     echo "#!/bin/sh" > run-ghc-server.sh &&\
@@ -71,10 +73,12 @@ COPY --from=build /root/.local/bin/ghc-server \
                   /run-ghc-server.sh \
                   /usr/local/bin/
 
-ENV PATH /root/.local/bin:$PATH
+# ENV PATH /root/.local/bin:$PATH
 
 COPY --from=build /root/.stack \
                   /root/.stack
 
+COPY run_websocketd.sh /usr/local/bin/
+
 EXPOSE 8080
-ENTRYPOINT ["websocketd", "--port=8080", "run-ghc-server.sh"]
+ENTRYPOINT ["run_websocketd.sh"]
