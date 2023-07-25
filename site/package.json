@@ -14,15 +14,16 @@
     "templates.js": "^0.3.11"
   },
   "devDependencies": {
+    "@parcel/packager-raw-url": "^2.9.3",
+    "@parcel/transformer-webmanifest": "^2.9.3",
     "parcel": "^2.9.3",
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.2"
   },
-
   "scripts": {
     "start": "parcel src/index.html",
-    "build": "parcel src/index.html",
+    "build": "rm -rf dist && parcel build src/index.html --no-source-maps --public-url ./",
     "predeploy": "rm -rf dist && parcel build src/index.html --no-source-maps --public-url ./",
-    "deploy": "scp dist/* iotasks-demo:/srv/http"
+    "deploy": "ssh iotasks-demo 'rm /srv/http/*' && scp dist/* iotasks-demo:/srv/http"
   }
 }
