@@ -92,6 +92,18 @@ const appState = {
   currentProblem : 0,
 }
 
+function setOverflowStatus(val) {
+  if (val) {
+    document.getElementById("overflow-status").classList.add("overflow-detected")
+    document.getElementById("overflow-status").classList.remove("no-overflow")
+    document.getElementById("overflow-status").innerHTML="overflow detected"
+  } else {
+    document.getElementById("overflow-status").classList.remove("overflow-detected")
+    document.getElementById("overflow-status").classList.add("no-overflow")
+    document.getElementById("overflow-status").innerHTML="no warnings"
+  }
+}
+
 function setArmed(val, onclose=false) {
   appState.armed = val
   if (!onclose) {
@@ -237,8 +249,7 @@ function sendSrc() {
     output.innerHTML=""
 
     // reset overflow status
-    document.getElementById("overflow-status").classList.remove("overflow-detected")
-    document.getElementById("overflow-status").classList.add("no-overflow")
+    setOverflowStatus(false)
 
     appState.ws = new WebSocket(websocketURL)
 
@@ -282,8 +293,7 @@ function runProgram() {
     startToStop()
 
     // reset overflow status
-    document.getElementById("overflow-status").classList.remove("overflow-detected")
-    document.getElementById("overflow-status").classList.add("no-overflow")
+    setOverflowStatus(false)
 
 
     output.innerHTML=""
@@ -302,8 +312,7 @@ function runProgram() {
           switch (true) {
             // overflow detected?
             case str.search(/Overflow of Int range detected/) >= 0:
-              document.getElementById("overflow-status").classList.remove("no-overflow")
-              document.getElementById("overflow-status").classList.add("overflow-detected")
+              setOverflowStatus(true)
               return;
             // test if output should be cleared
             case str.search(/tests\)/) >= 0: // during testing
