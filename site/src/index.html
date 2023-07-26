@@ -48,7 +48,7 @@
   <div class="grid h-3/7 grid-cols-5 grid-rows-layout-bottom">
     <span class="p-2">Input generation:</span>
     <div class="row-start-2 ml-2">
-      <button id="btn-constraints" class="ring text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Constraint based</button>
+      <button id="btn-constraints" class="ring text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Constraint-based</button>
       <button id="btn-random" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Random</button>
     </div>
 
@@ -68,18 +68,18 @@
     </div>
 
     <div id="div-input" class="hidden grayscale row-span-2 ml-2 min-h-max overflow-auto">
-      <button id="btn-sample-input" class="my-2 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">View sample inputs</button>
+      <button id="btn-sample-input" class="my-2 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Generate sample inputs</button>
       <div id="number-of-inputs" class="">
-        number of inputs:
+        max. number of input sequences:
         <input id="inp-inputs" type="number" min="1" value="5" class="border-solid border border-gray-700 w-12 h-6 text-center">
       </div>
     </div>
 
     <div id="div-smt" class="hidden grayscale row-span-2 ml-2 min-h-max overflow-auto">
-      <button id="btn-smt-code" class="my-2 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">show SMT problems</button>
+      <button id="btn-smt-code" class="my-2 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Show SMT problems</button>
       <div>
         <span id="path-length">
-          path length:
+          (max.) path length:
           <input id="inp-length" type="number" min="1" value="3" class="border-solid border border-gray-700 w-12 h-6, text-center">
         </span>
         <span id="smt-controls" class="hidden">

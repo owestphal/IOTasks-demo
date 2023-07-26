@@ -27,7 +27,7 @@ import Test.IOTasks.Random
 
 main :: IO ()
 main = taskCheckWith args program specification
--- HINT: The Args type for random testing differs from the constraint based one!`
+-- HINT: The Args type for random testing differs from the constraint-based one!`
 
 const emptyTemplate =
 `args :: Args
@@ -152,7 +152,7 @@ specification =
 const productExample =
 `args :: Args
 args = stdArgs {checkOverflows = True}
--- with chekOverflows = True the constraint solver tries to avoid input
+-- with checkOverflows = True the constraint solver tries to avoid input
 -- sequences that overflow/underflow the range of Ints
 -- (checkOverflows stdArgs == False by default)
 
