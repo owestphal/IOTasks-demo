@@ -396,6 +396,15 @@ function runSMTCode() {
         case "INFO: terminated":
             appState.busy = false
             stopToStart()
+            console.log(buffer != "");
+            switch (true) {
+              case buffer != "": // Assumption: no paths found due to exception in specification
+                document.getElementById("output-more").innerHTML = buffer
+                break
+              case document.getElementById("output-more").innerHTML == "":
+                document.getElementById("output-more").innerHTML = "the specification has no paths of the requested length"
+                break
+            }
             break;
         case "AsyncCancelled":
           document.getElementById("output-more").innerHTML+="Stopped"
