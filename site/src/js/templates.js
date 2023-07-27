@@ -33,27 +33,16 @@ const emptyTemplate =
 `args :: Args
 args = stdArgs
 
-program :: MonadTeletype io => io ()
-program = undefined
-
 specification :: Specification
 specification = undefined
+
+program :: MonadTeletype io => io ()
+program = undefined
 `
 
 const sumExample =
 `args :: Args
 args = stdArgs
-
-program :: MonadTeletype io => io ()
-program = do
-  n <- readLn
-  let
-    loop s m
-      | m == n  = print s
-      | otherwise = do
-        x <- readLn
-        loop (s+x) (m+1)
-  loop 0 0
 
 specification :: Specification
 specification =
@@ -67,11 +56,6 @@ specification =
   where
     n = intVar "n"
     x = intVar "x"
-`
-
-const sumExampleWithOutput =
-`args :: Args
-args = stdArgs
 
 program :: MonadTeletype io => io ()
 program = do
@@ -83,25 +67,54 @@ program = do
         x <- readLn
         loop (s+x) (m+1)
   loop 0 0
+`
+
+const sumExampleWithOutput =
+`args :: Args
+args = stdArgs
 
 specification :: Specification
 specification =
   readInput n nats AssumeValid <>
   tillExit (
     branch (length' (as @[Integer] $ allValues x) .==. currentValue n)
-      exit
-      (writeOptionalOutput [Value $ currentValue n .-. length' (as @[Integer] $ allValues x)] <>
-      readInput x ints AssumeValid)
+    exit
+    (writeOptionalOutput [Value $ currentValue n .-. length' (as @[Integer] $ allValues x)] <>
+    readInput x ints AssumeValid)
   ) <>
   writeOutput [Value $ sum' $ allValues x]
   where
     n = intVar "n"
     x = intVar "x"
+
+program :: MonadTeletype io => io ()
+program = do
+  n <- readLn
+  let
+    loop s m
+      | m == n  = print s
+      | otherwise = do
+        x <- readLn
+        loop (s+x) (m+1)
+  loop 0 0
 `
 
 const sumToZero =
 `args :: Args
 args = stdArgs
+
+specification :: Specification
+specification =
+  readInput x ints AssumeValid <>
+  tillExit (
+    readInput x ints AssumeValid <>
+    branch (currentValue' x 1 .+. currentValue x .==. intLit 0)
+    exit
+    nop
+  ) <>
+  writeOutput [Value $ length' $ as @[Integer] $ allValues x]
+  where
+    x = intVar "x"
 
 program :: MonadTeletype io => io ()
 program = do
@@ -114,30 +127,11 @@ program = do
       if x + y == 0
         then print $ n'
         else loop y n'
-
-
-specification :: Specification
-specification =
-  readInput x ints AssumeValid <>
-  tillExit (
-    readInput x ints AssumeValid <>
-    branch (currentValue' x 1 .+. currentValue x .==. intLit 0)
-      exit
-      nop
-    ) <>
-  writeOutput [Value $ length' $ as @[Integer] $ allValues x]
-  where x = intVar "x"
 `
 
 const singlePath =
 `args :: Args
 args = stdArgs
-
-program :: MonadTeletype io => io ()
-program = do
-  getLine
-  getLine
-  pure ()
 
 specification :: Specification
 specification =
@@ -147,6 +141,12 @@ specification =
       exit
   )
   where x = intVar "x"
+
+program :: MonadTeletype io => io ()
+program = do
+  getLine
+  getLine
+  pure ()
 `
 
 const productExample =
@@ -155,6 +155,19 @@ args = stdArgs {checkOverflows = True}
 -- with checkOverflows = True the constraint solver tries to avoid input
 -- sequences that overflow/underflow the range of Ints
 -- (checkOverflows stdArgs == False by default)
+
+specification :: Specification
+specification =
+  readInput n nats AssumeValid <>
+  tillExit (
+    branch (length' (as @[Integer] $ allValues x) .==. currentValue n)
+      exit
+      (readInput x ints AssumeValid)
+  ) <>
+  writeOutput [Value $ product' $ allValues x]
+  where
+    n = intVar "n"
+    x = intVar "x"
 
 program :: MonadTeletype io => io ()
 program = do
@@ -169,36 +182,11 @@ program = do
         x <- readLn
         loop (p*x) (m+1)
   loop 1 0
-
-specification :: Specification
-specification =
-  readInput n nats AssumeValid <>
-  tillExit (
-    branch (length' (as @[Integer] $ allValues x) .==. currentValue n)
-      exit
-      (readInput x ints AssumeValid)
-  ) <>
-  writeOutput [Value $ product' $ allValues x]
-  where
-    n = intVar "n"
-    x = intVar "x"
 `
 
 const fullTree =
 `args :: Args
 args = stdArgs{ maxIterationUnfold = 10 }
-
-program :: MonadTeletype io => io ()
-program = do
-  x <- readLn
-  let
-    loop s
-      | s > 0 = pure ()
-      | otherwise = do
-        x <- readLn
-        putStrLn $ if x > 0 then "positive" else "not positive"
-        loop (s+x)
-  loop x
 
 specification :: Specification
 specification =
@@ -214,11 +202,39 @@ specification =
   )
   where
     x = intVar "x"
+
+program :: MonadTeletype io => io ()
+program = do
+  x <- readLn
+  let
+    loop s
+      | s > 0 = pure ()
+      | otherwise = do
+        x <- readLn
+        putStrLn $ if x > 0 then "positive" else "not positive"
+        loop (s+x)
+  loop x
 `
 
 const stringExample =
 `args :: Args
 args = stdArgs
+
+specification :: Specification
+specification =
+  tillExit (
+    optionalTextOutput <>
+    readInput x ints AssumeValid <>
+    branch (currentValue x .==. intLit 0)
+    exit
+    (optionalTextOutput <>
+     readInput y ints AssumeValid <>
+     writeOutput [Wildcard <> Value (currentValue x .+. currentValue y) <> Wildcard])
+  ) <>
+  writeOutput [Wildcard <> Value (length' $ as @[Integer] $ allValues y) <> Wildcard]
+  where
+    x = intVar "x"
+    y = intVar "y"
 
 {- Write a program that reads in two integers (negative integers too)
  - and prints out their sum. This behavior is repeated until the first
@@ -249,20 +265,4 @@ program = loop 0
           putStr ("The sum of " ++ show x ++ " and " ++ show y ++ " is ")
           print (x + y)
           loop (n + 1)
-
-specification :: Specification
-specification =
-  tillExit (
-    optionalTextOutput <>
-    readInput x ints AssumeValid <>
-    branch (currentValue x .==. intLit 0)
-    exit
-    (optionalTextOutput <>
-     readInput y ints AssumeValid <>
-     writeOutput [Wildcard <> Value (currentValue x .+. currentValue y) <> Wildcard])
-  ) <>
-  writeOutput [Wildcard <> Value (length' $ as @[Integer] $ allValues y) <> Wildcard]
-  where
-    x = intVar "x"
-    y = intVar "y"
 `
