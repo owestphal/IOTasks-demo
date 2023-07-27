@@ -74,6 +74,7 @@ let srcView = new EditorView({
     [basicSetup,highlightActive
     ,lineNumbers({formatNumber: n => n+setupLines})
     ,StreamLanguage.define(haskell)
+    ,EditorView.updateListener.of(updateRecompileInfo)
   ],
   parent: document.getElementById("srcEditor")
 });
@@ -90,6 +91,8 @@ const appState = {
   sendConstraints : null,
   smtProblems : null,
   currentProblem : 0,
+  needsRecompile : false,
+  lastCompiledSrc : null,
 }
 
 function setOverflowStatus(val) {
@@ -111,6 +114,8 @@ function setArmed(val, onclose=false) {
     document.getElementById("output-more").innerHTML=""
   }
   if (val) {
+    // reset need for recompile
+    updateRecompileInfo(false)
     // show armed controls
     document.getElementById("run-button").classList.remove("grayscale")
     document.getElementById("div-input").classList.remove("grayscale")
@@ -122,11 +127,19 @@ function setArmed(val, onclose=false) {
       }
       appState.ws = null
     }
+    appState.lastCompiledSrc = null
     // hide armed controls
     document.getElementById("run-button").classList.add("grayscale")
     document.getElementById("div-input").classList.add("grayscale")
     document.getElementById("div-smt").classList.add("grayscale")
   }
+}
+
+function updateRecompileInfo(update = null) {
+  let src = srcView.state.doc.toString();
+  let isNewSrc = src != appState.lastCompiledSrc
+  let modeChanged = appState.setupWithConstraint != appState.sendConstraints
+  setRecompileNeeded(appState.armed && (modeChanged || isNewSrc))
 }
 
 function setupConstraints(val) {
@@ -138,6 +151,7 @@ function setupConstraints(val) {
       document.getElementById("btn-constraints").classList.remove("ring")
       document.getElementById("btn-random").classList.add("ring")
     }
+    updateRecompileInfo()
 }
 
 const moreText = "More"
@@ -187,6 +201,15 @@ function updateProblemDispaly() {
 
   document.getElementById("problem-count").innerHTML = String(appState.currentProblem+1) + "/" +appState.smtProblems.length
   document.getElementById("output-more").innerHTML = appState.smtProblems[appState.currentProblem]
+}
+
+function setRecompileNeeded(val) {
+  appState.needsRecompile = val
+  if (val) {
+    document.getElementById("recompile-needed").classList.remove("hidden")
+  } else {
+    document.getElementById("recompile-needed").classList.add("hidden")
+  }
 }
 
 // setup buttons
@@ -253,8 +276,8 @@ function sendSrc() {
 
     appState.ws = new WebSocket(websocketURL)
 
+    let src = srcView.state.doc.toString();
     appState.ws.onopen = () => {
-      let src = srcView.state.doc.toString();
       appState.ws.send("send_src")
       if (appState.setupWithConstraint) {
         appState.ws.send("constraints")
@@ -271,6 +294,8 @@ function sendSrc() {
       switch (msg.data) {
         case "INFO: success":
           setArmed(true)
+          appState.lastCompiledSrc=src
+          updateRecompileInfo()
           break;
         case "INFO: failure":
           break;
