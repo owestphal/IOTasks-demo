@@ -25,7 +25,7 @@ function initTerminal() {
     switch (ev.type) {
       case "keypress":
         switch (true) {
-          case /^[\w]$/.test(ev.key):
+          case /^[\w-"']$/.test(ev.key):
             return true
           case (ev.code === "Space"):
             return true
