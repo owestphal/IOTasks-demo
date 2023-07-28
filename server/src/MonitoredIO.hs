@@ -46,21 +46,3 @@ instance MonadTeletype MonitoredIO where
   putStr = MonitoredIO . const . putStrLn . ("<str>" ++)
   putStrLn = MonitoredIO . const . putStrLn . ("<line>" ++)
   hSetBuffering m = MonitoredIO . const . hSetBuffering m
-
-p :: MonadTeletype io => io ()
-p = loop 0
-  where
-    loop n = do
-      putStr "First number or 0 to exit: "
-      x <- readLn
-      if x == 0
-        then do
-          putStrLn "Exiting program"
-          putStr "The number of additions performed was: "
-          print n
-        else do
-          putStr "Second number: "
-          y <- readLn
-          putStr ("The sum of " ++ show x ++ " and " ++ show y ++ " is ")
-          print (x + y)
-          loop (n + 1)
