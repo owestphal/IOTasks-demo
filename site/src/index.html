@@ -13,6 +13,9 @@
   <link rel="mask-icon" href="safari-pinned-tab.svg" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#2d89ef">
   <meta name="theme-color" content="#ffffff">
+
+
+  <link rel="stylesheet" href="../node_modules/xterm/css/xterm.css" />
 </head>
 
 <script type="module" src="js/index.js"></script>
@@ -72,8 +75,9 @@
     </div>
 
     <div class="flex flex-row gap-3 justify-between mt-2">
-      <button id="run-button" class="grayscale w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Run</button>
+      <button id="run-button" class="grayscale w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Run main</button>
       <button id="stop-button" class="hidden w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Stop</button>
+      <button id="btn-run-io" class="grayscale w-48 text-white text-xs font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Run program @IO</button>
       <button id="btn-more" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900"></button>
     </div>
 
@@ -103,6 +107,9 @@
     <div class="col-start-3 row-start-2">
       <div id="overflow-status" class="p-2 w-fit font-normal text-white no-overflow rounded text-center">no warnings</div>
     </div>
+
+    <div id="console" class="hidden col-span-3 bg-gray-100 rounded m-2 mr-1 shadow-2xl"></div>
+
 
     <div id="output" class="font-mono whitespace-pre-wrap overflow-auto italic col-span-3 bg-gray-100 rounded m-2 mr-1 shadow-2xl"></div>
     <div id="output-more" class="font-mono whitespace-pre-wrap overflow-auto italic col-span-2 bg-gray-100 rounded m-2 ml-1 shadow-2xl"></div>

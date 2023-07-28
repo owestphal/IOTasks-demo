@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Context
+      MonitoredIO
       Server
   other-modules:
       Paths_IOTasks_test_server

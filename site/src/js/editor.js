@@ -26,6 +26,8 @@ import { emptyTemplate
 
 import {websocketURL} from "./server-data.js"
 
+import {initTerminal} from "./terminal.js"
+
 const setupLines = (constraintSetup.match(/\n/g) || "").length + 1;
 
 const basicSetup = [
@@ -79,6 +81,8 @@ let srcView = new EditorView({
   parent: document.getElementById("srcEditor")
 });
 
+let term = initTerminal()
+
 // app state and constants
 const output = document.getElementById("output")
 const appState = {
@@ -118,6 +122,7 @@ function setArmed(val, onclose=false) {
     updateRecompileInfo(false)
     // show armed controls
     document.getElementById("run-button").classList.remove("grayscale")
+    document.getElementById("btn-run-io").classList.remove("grayscale")
     document.getElementById("div-input").classList.remove("grayscale")
     document.getElementById("div-smt").classList.remove("grayscale")
   } else {
@@ -130,6 +135,7 @@ function setArmed(val, onclose=false) {
     appState.lastCompiledSrc = null
     // hide armed controls
     document.getElementById("run-button").classList.add("grayscale")
+    document.getElementById("btn-run-io").classList.add("grayscale")
     document.getElementById("div-input").classList.add("grayscale")
     document.getElementById("div-smt").classList.add("grayscale")
   }
@@ -185,6 +191,16 @@ function setSendConstraints(val) {
   updateMoreView()
 }
 
+function setTerminalVisibility(val) {
+  if (val) {
+    document.getElementById("console").classList.remove("hidden")
+    document.getElementById("output").classList.add("hidden")
+  } else {
+    document.getElementById("console").classList.add("hidden")
+    document.getElementById("output").classList.remove("hidden")
+  }
+}
+
 function updateMoreView() {
   document.getElementById("smt-controls").classList.add("hidden")
   if (appState.sendConstraints) {
@@ -229,6 +245,8 @@ document.getElementById("btn-fullTree").addEventListener("click",loadExample(ful
 document.getElementById("btn-stringExample").addEventListener("click",loadExample(stringExample));
 document.getElementById("compile-button").addEventListener("click",sendSrc);
 document.getElementById("run-button").addEventListener("click",runProgram);
+
+document.getElementById("btn-run-io").addEventListener("click",runIO);
 
 document.getElementById("btn-more").addEventListener("click",toggleMore);
 document.getElementById("btn-smt-code").addEventListener("click",runSMTCode);
@@ -319,7 +337,7 @@ function runProgram() {
 
     // reset overflow status
     setOverflowStatus(false)
-
+    setTerminalVisibility(false)
 
     output.innerHTML=""
     appState.ws.onmessage = msg => {
@@ -364,7 +382,7 @@ function runProgram() {
 }
 
 function stopExecution() {
-    appState.ws.send("abort")
+    appState.ws.send('~')
     appState.busy = false
     stopToStart()
 }
@@ -396,7 +414,6 @@ function runSMTCode() {
         case "INFO: terminated":
             appState.busy = false
             stopToStart()
-            console.log(buffer != "");
             switch (true) {
               case buffer != "": // Assumption: no paths found due to exception in specification
                 document.getElementById("output-more").innerHTML = buffer
@@ -449,5 +466,38 @@ function runSampleInput() {
     if (appState.sendConstraints) {
       appState.ws.send(document.getElementById("inp-length").value)
     }
+  }
+}
+
+function runIO() {
+  if (appState.armed && !appState.busy) {
+    appState.busy = true
+
+
+    setTerminalVisibility(true)
+    term.clear()
+    term.writeLine("program")
+
+    appState.ws.onmessage = msg => {
+      switch (msg.data) {
+        case "INFO: terminated":
+          appState.busy = false
+          term.unsetCallback()
+          term.prompt()
+          stopToStart()
+          break
+        case "AsyncCancelled":
+          term.writeLine("Stopped")
+          break;
+        default:
+          term.writeLine(msg.data)
+      }
+    }
+    appState.ws.send("run_io")
+    startToStop()
+
+    term.onUserInputLine(line => {
+      appState.ws.send(line)
+    })
   }
 }
