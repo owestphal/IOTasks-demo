@@ -38,7 +38,7 @@ RUN stack install &&\
     # create startup script with package GHC_PACKAGE_PATH set
     echo "#!/bin/sh" > run-ghc-server.sh &&\
     echo "set -e" >> run-ghc-server.sh &&\
-    echo "GHC_PACKAGE_PATH=$(stack path --snapshot-pkg-db):$(stack path --global-pkg-db) ghc-server" >> run-ghc-server.sh &&\
+    echo "GHC_PACKAGE_PATH=$(stack path --snapshot-pkg-db):$(stack path --global-pkg-db):$(stack path --local-pkg-db) ghc-server" >> run-ghc-server.sh &&\
     chmod +x run-ghc-server.sh
 
 RUN shopt -s globstar &&\
@@ -49,7 +49,6 @@ RUN shopt -s globstar &&\
     rm -rf /root/.stack/**/*Cabal* &&\
     rm -rf /root/.stack/**/*haskeline* &&\
     rm -rf /root/.stack/**/*xhtml* &&\
-    rm -rf /root/.stack/**/*hpc* &&\
     rm /root/.stack/**/ghc-tinfo*.tar.xz
 
 
@@ -77,6 +76,9 @@ COPY --from=build /root/.local/bin/ghc-server \
 
 COPY --from=build /root/.stack \
                   /root/.stack
+
+COPY --from=build /.stack-work \
+                  /.stack-work
 
 COPY run_websocketd.sh /usr/local/bin/
 
