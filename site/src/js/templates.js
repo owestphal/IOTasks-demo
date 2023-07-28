@@ -30,7 +30,9 @@ main = taskCheckWith args program specification
 -- HINT: The Args type for random testing differs from the constraint-based one!`
 
 const emptyTemplate =
-`args :: Args
+`-- Example loaded: Basic setup
+
+args :: Args
 args = stdArgs
 
 specification :: Specification
@@ -41,7 +43,9 @@ program = undefined
 `
 
 const sumExample =
-`args :: Args
+`-- Example loaded: Summation
+
+args :: Args
 args = stdArgs
 
 specification :: Specification
@@ -70,7 +74,9 @@ program = do
 `
 
 const sumExampleWithOutput =
-`args :: Args
+`-- Example loaded: Summation with optional output
+
+args :: Args
 args = stdArgs
 
 specification :: Specification
@@ -100,7 +106,9 @@ program = do
 `
 
 const sumToZero =
-`args :: Args
+`-- Example loaded: Sum to zero
+
+args :: Args
 args = stdArgs
 
 specification :: Specification
@@ -130,7 +138,9 @@ program = do
 `
 
 const singlePath =
-`args :: Args
+`-- Example loaded: Single path
+
+args :: Args
 args = stdArgs
 
 specification :: Specification
@@ -150,7 +160,9 @@ program = do
 `
 
 const productExample =
-`args :: Args
+`-- Example loaded: Product (overflow checks)
+
+args :: Args
 args = stdArgs {checkOverflows = True}
 -- with checkOverflows = True the constraint solver tries to avoid input
 -- sequences that overflow/underflow the range of Ints
@@ -185,7 +197,9 @@ program = do
 `
 
 const fullTree =
-`args :: Args
+`-- Example loaded: Exponentially many sat. paths
+
+args :: Args
 args = stdArgs{ maxIterationUnfold = 10 }
 
 specification :: Specification
@@ -217,7 +231,9 @@ program = do
 `
 
 const stringExample =
-`args :: Args
+`-- Example loaded: String output
+
+args :: Args
 args = stdArgs
 
 specification :: Specification
