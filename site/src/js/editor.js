@@ -473,6 +473,9 @@ function runIO() {
   if (appState.armed && !appState.busy) {
     appState.busy = true
 
+    if (appState.lastCompiledSrc.search(/\sgetChar\s|\sputChar\s/) >= 0) {
+      alert("Warning: interactive behavior of getChar, putChar can be unreliable")
+    }
 
     setTerminalVisibility(true)
     term.clear()
