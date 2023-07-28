@@ -287,6 +287,8 @@ function sendSrc() {
     appState.busy = true
     output.innerHTML=""
 
+    // hide terminal
+    setTerminalVisibility(false)
     // reset overflow status
     setOverflowStatus(false)
 
