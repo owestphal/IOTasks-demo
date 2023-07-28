@@ -476,7 +476,7 @@ function runIO() {
     appState.busy = true
 
     if (appState.lastCompiledSrc.search(/\sgetChar\s/) >= 0) {
-      alert("Warning: interactive behavior of getChar be unreliable (might require <ENTER> to be send)")
+      alert("Warning: interactive behavior of getChar can be unreliable (might require <ENTER> to be sent)")
     }
 
     setTerminalVisibility(true)
