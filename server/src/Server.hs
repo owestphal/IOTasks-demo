@@ -39,8 +39,6 @@ import Test.QuickCheck (generate)
 import Context
 import MonitoredIO
 
-import Control.Applicative
-
 runMain :: IO ()
 runMain = do
   request <- getLine
@@ -227,7 +225,7 @@ tryCompile ctx p = do
     hClose tempH -- close file handle so GHC can load the file later
 
     logRef <- newIORef ""
-    defaultErrorHandler defaultFatalMessager defaultFlushOut $
+    defaultErrorHandler (\s -> putStrLn s >> putStrLn "INFO: failure") defaultFlushOut $
       runGhc (Just libdir) $ do
         dflags <- getSessionDynFlags
         let

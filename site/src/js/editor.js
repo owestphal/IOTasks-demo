@@ -325,6 +325,7 @@ function sendSrc() {
 
     appState.ws.onclose = () => {
       setArmed(false,true)
+      updateRecompileInfo()
       appState.busy = false
     }
   }
