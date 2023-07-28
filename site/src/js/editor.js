@@ -475,8 +475,8 @@ function runIO() {
   if (appState.armed && !appState.busy) {
     appState.busy = true
 
-    if (appState.lastCompiledSrc.search(/\sgetChar\s|\sputChar\s/) >= 0) {
-      alert("Warning: interactive behavior of getChar, putChar can be unreliable")
+    if (appState.lastCompiledSrc.search(/\sgetChar\s/) >= 0) {
+      alert("Warning: interactive behavior of getChar be unreliable (might require <ENTER> to be send)")
     }
 
     setTerminalVisibility(true)
@@ -496,7 +496,19 @@ function runIO() {
           term.writeLine("Stopped")
           break;
         default:
-          term.writeLine(msg.data)
+          switch (true) {
+            case msg.data.startsWith("<char>"):
+              term.writeLine(msg.data.slice(6),false)
+              break
+            case msg.data.startsWith("<str>"):
+              term.writeLine(msg.data.slice(5),false)
+              break
+            case msg.data.startsWith("<line>"):
+              term.writeLine(msg.data.slice(6),true)
+              break
+            default:
+              term.writeLine(msg.data)
+          }
       }
     }
     appState.ws.send("run_io")
