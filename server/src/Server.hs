@@ -39,6 +39,8 @@ import Test.QuickCheck (generate)
 import Context
 import MonitoredIO
 
+import Control.Applicative
+
 runMain :: IO ()
 runMain = do
   request <- getLine
@@ -210,8 +212,8 @@ outputSMTProblem (res, code) = do
 
 runIO :: SessionState a -> IO ()
 runIO st = do
-  void $ timeout (minutes 1) $  abortableWith '~' $ ioProgram st
-    -- `catch` (\(SomeException e) -> putStrLn $ clean (tempPath st) $ displayException e)
+  void $ timeout (minutes 1) $
+    abortableWith '~' (ioProgram st) `catch` (\(SomeException e) -> Nothing <$ putStrLn (clean (tempPath st) $ displayException e))
   putStrLn "INFO: terminated"
 
 type ProgramSrc = String
