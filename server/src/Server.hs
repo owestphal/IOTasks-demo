@@ -23,7 +23,7 @@ import Control.Monad.IO.Class (liftIO)
 import System.IO.Temp (withTempFile)
 import System.IO (hPutStr,hClose, hSetBuffering, stdout, BufferMode(..))
 import Control.Exception (catch, throw, Exception(..), SomeException(..))
-import Control.Concurrent.Async (race_, concurrently_)
+import Control.Concurrent.Async (race_, concurrently_,)
 import Control.Monad (void, forM_, replicateM_)
 import Control.Concurrent.STM
 import System.Timeout (timeout)
@@ -37,6 +37,7 @@ import Test.IOTasks.Z3 (evalPathScript, SatResult (..), satPathsQ, findPathInput
 import Test.QuickCheck (generate)
 
 import Context
+import MonitoredIO
 
 runMain :: IO ()
 runMain = do
@@ -77,28 +78,38 @@ compileAndWait ctx src = do
   res <- tryCompile ctx src
   case res of
     Left msg -> putStrLn "INFO: failure" >> putStrLn msg
-    Right (p,s,a) -> do
+    Right (m,s,p,a,temp) -> do
       putStrLn "INFO: success"
-      void $ timeout (minutes 10) (sessionLoop $ newSession ctx p s a)
-  where minutes = (* (60 * 10^6))
+      void $ timeout (minutes 10) (sessionLoop $ newSession ctx m s temp a p)
+
+minutes :: Int -> Int
+minutes = (* (60 * 10^6))
 
 data SessionState a where
-  ConstraintSession :: Specification -> Constraints.Args -> IO () -> SessionState ConstraintType
-  RandomSession :: Specification -> Random.Args -> IO () -> SessionState RandomType
+  ConstraintSession :: Specification -> FilePath -> Constraints.Args -> IO () -> MonitoredIO () -> SessionState ConstraintType
+  RandomSession :: Specification -> FilePath -> Random.Args -> IO () -> MonitoredIO () -> SessionState RandomType
 
-newSession :: ContextType a -> IO () -> Specification -> ContextArgs a -> SessionState a
+newSession :: ContextType a -> IO () -> Specification -> FilePath -> ContextArgs a -> MonitoredIO () -> SessionState a
 newSession RandomContext = newRandomSession
 newSession ConstraintContext = newConstraintSession
 
-newConstraintSession :: IO () -> Specification -> Constraints.Args -> SessionState ConstraintType
-newConstraintSession p s a = ConstraintSession s a p
+newConstraintSession :: IO () -> Specification -> FilePath -> Constraints.Args -> MonitoredIO () -> SessionState ConstraintType
+newConstraintSession m s t a = ConstraintSession s t a m
 
-newRandomSession :: IO () -> Specification -> Random.Args -> SessionState RandomType
-newRandomSession p s a = RandomSession s a p
+newRandomSession :: IO () -> Specification -> FilePath -> Random.Args -> MonitoredIO () -> SessionState RandomType
+newRandomSession m s t a = RandomSession s t a m
 
 mainProgram :: SessionState a -> IO ()
-mainProgram (RandomSession _ _ p) = p
-mainProgram (ConstraintSession _ _ p) = p
+mainProgram (RandomSession _ _ _ p _) = p
+mainProgram (ConstraintSession _ _ _ p _) = p
+
+ioProgram :: SessionState a -> MonitoredIO ()
+ioProgram (RandomSession _ _ _ _ p) = p
+ioProgram (ConstraintSession _ _ _ _ p) = p
+
+tempPath :: SessionState a -> FilePath
+tempPath (RandomSession _ t _ _ _) = t
+tempPath (ConstraintSession _ t _ _ _) = t
 
 sessionLoop :: forall a. SessionState a -> IO ()
 sessionLoop st = case st of
@@ -109,50 +120,53 @@ sessionLoop st = case st of
     randomSession = do
       cmd <- getLine
       case cmd of
-        "run" -> runProgram (mainProgram st) >> randomSession
+        "run" -> runProgram st >> randomSession
         "sample_input" -> sampleInput st >> randomSession
+        "run_io" -> runIO st >> randomSession
         "exit" -> pure ()
+        "" -> randomSession
         _ -> error "unknown command"
     constraintsSession :: (a ~ ConstraintType) => IO ()
     constraintsSession = do
       cmd <- getLine
       case cmd of
-        "run" -> runProgram (mainProgram st) >> constraintsSession
+        "run" -> runProgram st >> constraintsSession
         "smt_code" -> smtCode st >> constraintsSession
         "sample_input" -> sampleInput st >> constraintsSession
+        "run_io" -> runIO st >> constraintsSession
         "exit" -> pure ()
+        "" -> constraintsSession
         _ -> error "unknown command"
 
-runProgram :: IO () -> IO ()
-runProgram p = do
-  abortable p
+runProgram :: SessionState a -> IO ()
+runProgram st = do
+  abortable (tempPath st) (mainProgram st)
   putStrLn "INFO: terminated"
 
-abortable :: IO a -> IO ()
-abortable p = race_ waitForAbort $ do
-  void p `catch` (\(SomeException e) -> putStrLn $ displayException e)
+-- only works if p does not read from stdin
+-- otherwise use MonitoredIO
+abortable :: FilePath -> IO () -> IO ()
+abortable t p = race_ waitForAbort $ do
+  void p `catch` (\(SomeException e) -> putStrLn $ clean t $ displayException e)
 
 waitForAbort :: IO ()
 waitForAbort = do
   msg <- getLine
   case msg of
-    "abort" -> pure ()
+    "~" -> pure ()
     _ -> waitForAbort
 
-data Abort = Abort deriving Show
-instance Exception Abort
-
 sampleInput :: SessionState a -> IO ()
-sampleInput (RandomSession s Random.Args{..} _ )  = do
+sampleInput (RandomSession s t Random.Args{..} _ _)  = do
   n <- readLn
-  abortable $ replicateM_ n $ do
+  abortable t $ replicateM_ n $ do
     i <- generate $ Random.genInput s maxInputLength (Size valueSize (fromIntegral $ valueSize `div` 5)) maxNegative
     print i
   putStrLn "INFO: terminated"
-sampleInput (ConstraintSession s Constraints.Args{..} _ )  = do
+sampleInput (ConstraintSession s t Constraints.Args{..} _ _)  = do
   n <- readLn
   m <- readLn
-  abortable $ do
+  abortable t $ do
     nVar <- newTVarIO (Just m)
     qVar <- newTQueueIO
     let
@@ -175,9 +189,9 @@ sampleInput (ConstraintSession s Constraints.Args{..} _ )  = do
   putStrLn "INFO: terminated"
 
 smtCode :: SessionState ConstraintType -> IO ()
-smtCode (ConstraintSession s Constraints.Args{..} _) = do
+smtCode (ConstraintSession s t Constraints.Args{..} _ _) = do
   n <- readLn
-  abortable $ do
+  abortable t $ do
     let ps = filter ((== n) . pathDepth) $ paths n $ constraintTree maxNegative s
     forM_ ps $ \p -> do
       res <- evalPathScript solverTimeout p valueSize solverMaxSeqLength checkOverflows
@@ -194,18 +208,24 @@ outputSMTProblem (res, code) = do
     NotSAT -> "unsat"
     Timeout -> "timeout"
 
+runIO :: SessionState a -> IO ()
+runIO st = do
+  void $ timeout (minutes 1) $
+    abortableWith '~' (ioProgram st) `catch` (\(SomeException e) -> Nothing <$ putStrLn (clean (tempPath st) $ displayException e))
+  putStrLn "INFO: terminated"
+
 type ProgramSrc = String
 type ErrorMsg = String
 type Program = IO ()
 
-tryCompile :: forall a. ContextType a -> ProgramSrc -> IO (Either ErrorMsg (Program, Specification, ContextArgs a))
+tryCompile :: forall a. ContextType a -> ProgramSrc -> IO (Either ErrorMsg (Program, Specification, MonitoredIO (), ContextArgs a, FilePath))
 tryCompile ctx p = do
   withTempFile "/tmp" "Main.hs" $ \temp tempH -> do
     hPutStr tempH (context ctx p)
     hClose tempH -- close file handle so GHC can load the file later
 
     logRef <- newIORef ""
-    defaultErrorHandler defaultFatalMessager defaultFlushOut $
+    defaultErrorHandler (\s -> putStrLn s >> putStrLn "INFO: failure") defaultFlushOut $
       runGhc (Just libdir) $ do
         dflags <- getSessionDynFlags
         let
@@ -228,18 +248,23 @@ tryCompile ctx p = do
             setContext
               [importModule "Main"
               ,importModule "System.IO"
+              ,importModule "Prelude"
+              ,importModule "Test.IOTasks"
+              ,importModule "MonitoredIO"
               ]
-            (mainPlain, spec, args) <- unsafeCoerce @HValue @(IO (), Specification, ContextArgs a) <$> compileExpr "(main, specification, args)"
-            let mainProgram = catch @SomeException mainPlain (rethrowCleaned temp)
+            (mainPlain, spec, program, args) <- unsafeCoerce @HValue @(IO (), Specification, MonitoredIO (), ContextArgs a) <$> compileExpr "(main, specification, Test.IOTasks.hSetBuffering stdout NoBuffering >> program @MonitoredIO, args)"
             msg <- liftIO $ readIORef logRef
-            if msg == "" then pure $ Right (mainProgram, spec, args) else pure $ Left msg
+            let
+              main = mainPlain `catch` (\(SomeException e) -> rethrowCleaned temp e)
+            if msg == "" then pure $ Right (main, spec, program, args,temp) else pure $ Left msg
           else do
             pure $ Left msg
-  where
-    clean :: FilePath -> String -> String -- act as if the temp file is called main
-    clean temp = unpack . replace (pack temp) "Main.hs" . pack
-    rethrowCleaned :: Exception e => FilePath -> e -> IO ()
-    rethrowCleaned temp = throw . CleanedException (clean temp) . toException
+
+rethrowCleaned :: forall a e. Exception e => FilePath -> e -> IO a
+rethrowCleaned temp = throw . CleanedException (clean temp) . toException
+
+clean :: FilePath -> String -> String -- act as if the temp file is called main
+clean temp = unpack . replace (pack temp) "Main.hs" . pack
 
 data CleanedException = forall e. Exception e => CleanedException (String -> String) e
 

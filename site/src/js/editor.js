@@ -26,6 +26,8 @@ import { emptyTemplate
 
 import {websocketURL} from "./server-data.js"
 
+import {initTerminal} from "./terminal.js"
+
 const setupLines = (constraintSetup.match(/\n/g) || "").length + 1;
 
 const basicSetup = [
@@ -74,9 +76,12 @@ let srcView = new EditorView({
     [basicSetup,highlightActive
     ,lineNumbers({formatNumber: n => n+setupLines})
     ,StreamLanguage.define(haskell)
+    ,EditorView.updateListener.of(updateRecompileInfo)
   ],
   parent: document.getElementById("srcEditor")
 });
+
+let term = initTerminal()
 
 // app state and constants
 const output = document.getElementById("output")
@@ -90,17 +95,17 @@ const appState = {
   sendConstraints : null,
   smtProblems : null,
   currentProblem : 0,
+  needsRecompile : false,
+  lastCompiledSrc : null,
 }
 
 function setOverflowStatus(val) {
   if (val) {
-    document.getElementById("overflow-status").classList.add("overflow-detected")
-    document.getElementById("overflow-status").classList.remove("no-overflow")
-    document.getElementById("overflow-status").innerHTML="overflow detected"
+    document.getElementById("overflow").classList.remove("hidden")
+    document.getElementById("no-overflow").classList.add("hidden")
   } else {
-    document.getElementById("overflow-status").classList.remove("overflow-detected")
-    document.getElementById("overflow-status").classList.add("no-overflow")
-    document.getElementById("overflow-status").innerHTML="no warnings"
+    document.getElementById("overflow").classList.add("hidden")
+    document.getElementById("no-overflow").classList.remove("hidden")
   }
 }
 
@@ -111,8 +116,11 @@ function setArmed(val, onclose=false) {
     document.getElementById("output-more").innerHTML=""
   }
   if (val) {
+    // reset need for recompile
+    updateRecompileInfo(false)
     // show armed controls
     document.getElementById("run-button").classList.remove("grayscale")
+    document.getElementById("btn-run-io").classList.remove("grayscale")
     document.getElementById("div-input").classList.remove("grayscale")
     document.getElementById("div-smt").classList.remove("grayscale")
   } else {
@@ -122,11 +130,20 @@ function setArmed(val, onclose=false) {
       }
       appState.ws = null
     }
+    appState.lastCompiledSrc = null
     // hide armed controls
     document.getElementById("run-button").classList.add("grayscale")
+    document.getElementById("btn-run-io").classList.add("grayscale")
     document.getElementById("div-input").classList.add("grayscale")
     document.getElementById("div-smt").classList.add("grayscale")
   }
+}
+
+function updateRecompileInfo(update = null) {
+  let src = srcView.state.doc.toString();
+  let isNewSrc = src != appState.lastCompiledSrc
+  let modeChanged = appState.setupWithConstraint != appState.sendConstraints
+  setRecompileNeeded(appState.armed && (modeChanged || isNewSrc))
 }
 
 function setupConstraints(val) {
@@ -138,6 +155,7 @@ function setupConstraints(val) {
       document.getElementById("btn-constraints").classList.remove("ring")
       document.getElementById("btn-random").classList.add("ring")
     }
+    updateRecompileInfo()
 }
 
 const moreText = "More"
@@ -171,6 +189,16 @@ function setSendConstraints(val) {
   updateMoreView()
 }
 
+function setTerminalVisibility(val) {
+  if (val) {
+    document.getElementById("console").classList.remove("hidden")
+    document.getElementById("output").classList.add("hidden")
+  } else {
+    document.getElementById("console").classList.add("hidden")
+    document.getElementById("output").classList.remove("hidden")
+  }
+}
+
 function updateMoreView() {
   document.getElementById("smt-controls").classList.add("hidden")
   if (appState.sendConstraints) {
@@ -187,6 +215,15 @@ function updateProblemDispaly() {
 
   document.getElementById("problem-count").innerHTML = String(appState.currentProblem+1) + "/" +appState.smtProblems.length
   document.getElementById("output-more").innerHTML = appState.smtProblems[appState.currentProblem]
+}
+
+function setRecompileNeeded(val) {
+  appState.needsRecompile = val
+  if (val) {
+    document.getElementById("recompile-needed").classList.remove("hidden")
+  } else {
+    document.getElementById("recompile-needed").classList.add("hidden")
+  }
 }
 
 // setup buttons
@@ -206,6 +243,8 @@ document.getElementById("btn-fullTree").addEventListener("click",loadExample(ful
 document.getElementById("btn-stringExample").addEventListener("click",loadExample(stringExample));
 document.getElementById("compile-button").addEventListener("click",sendSrc);
 document.getElementById("run-button").addEventListener("click",runProgram);
+
+document.getElementById("btn-run-io").addEventListener("click",runIO);
 
 document.getElementById("btn-more").addEventListener("click",toggleMore);
 document.getElementById("btn-smt-code").addEventListener("click",runSMTCode);
@@ -248,13 +287,15 @@ function sendSrc() {
     appState.busy = true
     output.innerHTML=""
 
+    // hide terminal
+    setTerminalVisibility(false)
     // reset overflow status
     setOverflowStatus(false)
 
     appState.ws = new WebSocket(websocketURL)
 
+    let src = srcView.state.doc.toString();
     appState.ws.onopen = () => {
-      let src = srcView.state.doc.toString();
       appState.ws.send("send_src")
       if (appState.setupWithConstraint) {
         appState.ws.send("constraints")
@@ -271,6 +312,8 @@ function sendSrc() {
       switch (msg.data) {
         case "INFO: success":
           setArmed(true)
+          appState.lastCompiledSrc=src
+          updateRecompileInfo()
           break;
         case "INFO: failure":
           break;
@@ -282,6 +325,7 @@ function sendSrc() {
 
     appState.ws.onclose = () => {
       setArmed(false,true)
+      updateRecompileInfo()
       appState.busy = false
     }
   }
@@ -294,7 +338,7 @@ function runProgram() {
 
     // reset overflow status
     setOverflowStatus(false)
-
+    setTerminalVisibility(false)
 
     output.innerHTML=""
     appState.ws.onmessage = msg => {
@@ -339,7 +383,7 @@ function runProgram() {
 }
 
 function stopExecution() {
-    appState.ws.send("abort")
+    appState.ws.send('~')
     appState.busy = false
     stopToStart()
 }
@@ -371,6 +415,14 @@ function runSMTCode() {
         case "INFO: terminated":
             appState.busy = false
             stopToStart()
+            switch (true) {
+              case buffer != "": // Assumption: no paths found due to exception in specification
+                document.getElementById("output-more").innerHTML = buffer
+                break
+              case document.getElementById("output-more").innerHTML == "":
+                document.getElementById("output-more").innerHTML = "the specification has no paths of the requested length"
+                break
+            }
             break;
         case "AsyncCancelled":
           document.getElementById("output-more").innerHTML+="Stopped"
@@ -415,5 +467,42 @@ function runSampleInput() {
     if (appState.sendConstraints) {
       appState.ws.send(document.getElementById("inp-length").value)
     }
+  }
+}
+
+function runIO() {
+  if (appState.armed && !appState.busy) {
+    appState.busy = true
+
+    if (appState.lastCompiledSrc.search(/\sgetChar\s|\sputChar\s/) >= 0) {
+      alert("Warning: interactive behavior of getChar, putChar can be unreliable")
+    }
+
+    setTerminalVisibility(true)
+    setOverflowStatus(false)
+    term.clear()
+    term.writeLine("program")
+
+    appState.ws.onmessage = msg => {
+      switch (msg.data) {
+        case "INFO: terminated":
+          appState.busy = false
+          term.unsetCallback()
+          term.prompt()
+          stopToStart()
+          break
+        case "AsyncCancelled":
+          term.writeLine("Stopped")
+          break;
+        default:
+          term.writeLine(msg.data)
+      }
+    }
+    appState.ws.send("run_io")
+    startToStop()
+
+    term.onUserInputLine(line => {
+      appState.ws.send(line)
+    })
   }
 }

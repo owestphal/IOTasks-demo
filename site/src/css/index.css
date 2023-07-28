@@ -2,14 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.no-overflow  {
-  @apply bg-gray-600
-}
-
-.overflow-detected  {
-  @apply bg-red-600;
-}
-
 .cm-editor {
   @apply bg-white;
   @apply h-full;
