@@ -421,7 +421,7 @@ function runSMTCode() {
                 document.getElementById("output-more").innerHTML = buffer
                 break
               case document.getElementById("output-more").innerHTML == "":
-                document.getElementById("output-more").innerHTML = "the specification has no paths of the requested length"
+                document.getElementById("output-more").innerHTML = "the specification has no paths of exactly the requested length"
                 break
             }
             break;
