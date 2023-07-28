@@ -101,13 +101,11 @@ const appState = {
 
 function setOverflowStatus(val) {
   if (val) {
-    document.getElementById("overflow-status").classList.add("overflow-detected")
-    document.getElementById("overflow-status").classList.remove("no-overflow")
-    document.getElementById("overflow-status").innerHTML="overflow detected"
+    document.getElementById("overflow").classList.remove("hidden")
+    document.getElementById("no-overflow").classList.add("hidden")
   } else {
-    document.getElementById("overflow-status").classList.remove("overflow-detected")
-    document.getElementById("overflow-status").classList.add("no-overflow")
-    document.getElementById("overflow-status").innerHTML="no warnings"
+    document.getElementById("overflow").classList.add("hidden")
+    document.getElementById("no-overflow").classList.remove("hidden")
   }
 }
 
@@ -478,6 +476,7 @@ function runIO() {
     }
 
     setTerminalVisibility(true)
+    setOverflowStatus(false)
     term.clear()
     term.writeLine("program")
 
