@@ -22,7 +22,7 @@ import { emptyTemplate
        , stringExample
        , constraintSetup
        , randomSetup
-       } from "./templates.js"
+    } from "./templates.js"
 
 import {websocketURL} from "./server-data.js"
 
@@ -312,6 +312,7 @@ function sendSrc() {
       switch (msg.data) {
         case "INFO: success":
           setArmed(true)
+          document.getElementById("output").innerHTML="Compiled successfully."
           appState.lastCompiledSrc=src
           updateRecompileInfo()
           break;
