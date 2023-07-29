@@ -61,6 +61,15 @@ specification =
     n = intVar "n"
     x = intVar "x"
 
+{- Write a program that calculates the sum of a series of integers
+ - entered by the user. Your program should first prompt the user to
+ - enter a single integer, n. This number will represent the total
+ - number of integers the user will input next. After getting the
+ - value of n, your program should read n integers, one at a time,
+ - from the user. Once all n numbers have been entered, the program
+ - should display the total sum of those numbers.
+ -}
+
 program :: MonadTeletype io => io ()
 program = do
   n <- readLn
@@ -93,6 +102,17 @@ specification =
     n = intVar "n"
     x = intVar "x"
 
+{- Write a program that calculates the sum of a series of integers
+ - entered by the user. Your program should first prompt the user to
+ - enter a single integer, n. This number will represent the total
+ - number of integers the user will input next. After getting the
+ - value of n, your program should read n integers, one at a time,
+ - from the user. While doing so, the program may print out, before
+ - each input, how many values are still missing. Once all n numbers
+ - have been entered, the program should display the total sum of
+ - those numbers.
+ -}
+
 program :: MonadTeletype io => io ()
 program = do
   n <- readLn
@@ -123,6 +143,12 @@ specification =
   writeOutput [Value $ length' $ as @[Integer] $ allValues x]
   where
     x = intVar "x"
+
+{- Write a program to help in a number sequence analysis. The aim of
+ - this program is to read a series of integer numbers from the input
+ - and determine after how many numbers read, the sum of the current
+ - number and the previous number becomes zero.
+ -}
 
 program :: MonadTeletype io => io ()
 program = do
@@ -181,6 +207,14 @@ specification =
     n = intVar "n"
     x = intVar "x"
 
+{- Write a program that performs the following actions:
+ -
+ - 1. Read an integer n from the standard input.
+ - 2. Read n more integers one by one from the standard input.
+ - 3. Calculate the product of these n integers.
+ - 4. Print the resulting product.
+ -}
+
 program :: MonadTeletype io => io ()
 program = do
   n <- readLn
@@ -216,6 +250,29 @@ specification =
   )
   where
     x = intVar "x"
+
+{- Write a program that works as follows:
+ -
+ - 1. The program first asks the user to input a number.
+ -
+ - 2. This initial number serves as a running total or sum.
+ -
+ - 3. The program then enters a loop of operations based on the running total:
+
+    - If the running total is positive, the program stops and waits
+      for no further input.
+
+    - If the running total is not positive, the program prompts the
+      user for another number.
+
+    - After receiving the new number, the program gives feedback to
+      the user, stating whether the newly provided number is positive
+      or not.
+
+    - The newly input number is added to the running total.
+
+    - The loop continues until the running total becomes positive.
+ -}
 
 program :: MonadTeletype io => io ()
 program = do
