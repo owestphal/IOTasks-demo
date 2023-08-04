@@ -22,13 +22,11 @@ context ctxTy p =
   unlines
     ["{-# LANGUAGE TypeApplications #-}"
     ,"module Main where"
-    ,"import Prelude hiding (putChar, putStr, putStrLn, print, getChar, getLine, readLn, until)"
+    ,"import Prelude hiding (putChar, putStr, putStrLn, print, getChar, getLine, readLn)"
     ,"import " ++ ioTasksImport ctxTy
     ,"import qualified System.IO as SIO"
-    ,"import Control.Concurrent"
     ,"main :: IO ()"
-    ,"main = do"
-    ,"  SIO.hSetBuffering SIO.stdout SIO.NoBuffering >> taskCheckWith args program specification"
+    ,"main = SIO.hSetBuffering SIO.stdout SIO.NoBuffering >> taskCheckWith args program specification"
     ]
   <> p
 

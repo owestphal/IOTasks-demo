@@ -177,14 +177,14 @@ sampleInput (ConstraintSession s t Constraints.Args{..} _ _)  = do
         mp <- atomically $ readTQueue qVar
         case mp of
           Just p -> do
-            res <- findPathInput solverTimeout p valueSize solverMaxSeqLength checkOverflows
+            res <- findPathInput solverTimeout p valueSize solverMaxSeqLength avoidOverflows
             case res of
               SAT i -> print i >> outputInputs (x-1)
               Timeout -> outputInputs x
               NotSAT -> outputInputs x
           Nothing -> pure ()
     concurrently_
-      (satPathsQ nVar solverTimeout (constraintTree maxNegative s) maxIterationUnfold solverMaxSeqLength checkOverflows qVar)
+      (satPathsQ nVar solverTimeout (constraintTree maxNegative s) maxIterationUnfold solverMaxSeqLength avoidOverflows qVar)
       (outputInputs n)
   putStrLn "INFO: terminated"
 
@@ -194,7 +194,7 @@ smtCode (ConstraintSession s t Constraints.Args{..} _ _) = do
   abortable t $ do
     let ps = filter ((== n) . pathDepth) $ paths n $ constraintTree maxNegative s
     forM_ ps $ \p -> do
-      res <- evalPathScript solverTimeout p valueSize solverMaxSeqLength checkOverflows
+      res <- evalPathScript solverTimeout p valueSize solverMaxSeqLength avoidOverflows
       outputSMTProblem res
       putStrLn "INFO: end of smt problem"
   putStrLn "INFO: terminated"

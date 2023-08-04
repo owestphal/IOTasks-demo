@@ -13,7 +13,7 @@ export
 
 const constraintSetup =
 `{-# LANGUAGE TypeApplications #-}
-import Prelude hiding (putChar, putStr, putStrLn, print, getChar, getLine, readLn, until)
+import Prelude hiding (putChar, putStr, putStrLn, print, getChar, getLine, readLn)
 import Test.IOTasks
 
 main :: IO ()
@@ -22,7 +22,7 @@ main = taskCheckWith args program specification
 
 const randomSetup =
 `{-# LANGUAGE TypeApplications #-}
-import Prelude hiding (putChar, putStr, putStrLn, print, getChar, getLine, readLn, until)
+import Prelude hiding (putChar, putStr, putStrLn, print, getChar, getLine, readLn)
 import Test.IOTasks.Random
 
 main :: IO ()
@@ -56,7 +56,7 @@ specification =
       exit
       (readInput x ints AssumeValid)
   ) <>
-  writeOutput [Value $ sum' $ allValues x]
+  writeOutput [value $ sum' $ allValues x]
   where
     n = intVar "n"
     x = intVar "x"
@@ -94,10 +94,10 @@ specification =
   tillExit (
     branch (length' (as @[Integer] $ allValues x) .==. currentValue n)
     exit
-    (writeOptionalOutput [Value $ currentValue n .-. length' (as @[Integer] $ allValues x)] <>
+    (writeOptionalOutput [value $ currentValue n .-. length' (as @[Integer] $ allValues x)] <>
     readInput x ints AssumeValid)
   ) <>
-  writeOutput [Value $ sum' $ allValues x]
+  writeOutput [value $ sum' $ allValues x]
   where
     n = intVar "n"
     x = intVar "x"
@@ -140,7 +140,7 @@ specification =
     exit
     nop
   ) <>
-  writeOutput [Value $ length' $ as @[Integer] $ allValues x]
+  writeOutput [value $ length' $ as @[Integer] $ allValues x]
   where
     x = intVar "x"
 
@@ -189,10 +189,10 @@ const productExample =
 `-- Example loaded: Product (overflow checks)
 
 args :: Args
-args = stdArgs {checkOverflows = True}
--- with checkOverflows = True the constraint solver tries to avoid input
+args = stdArgs
+-- set avoidOverflows = True to potentially generate input
 -- sequences that overflow/underflow the range of Ints
--- (checkOverflows stdArgs == False by default)
+-- (avoidOverflows stdArgs = True by default)
 
 specification :: Specification
 specification =
@@ -202,7 +202,7 @@ specification =
       exit
       (readInput x ints AssumeValid)
   ) <>
-  writeOutput [Value $ product' $ allValues x]
+  writeOutput [value $ product' $ allValues x]
   where
     n = intVar "n"
     x = intVar "x"
@@ -244,8 +244,8 @@ specification =
       exit
       (readInput x ints AssumeValid <>
         branch (currentValue x .>. intLit 0)
-          (writeOutput [Text "positive"])
-          (writeOutput [Text "not positive"])
+          (writeOutput [text "positive"])
+          (writeOutput [text "not positive"])
       )
   )
   where
@@ -302,9 +302,9 @@ specification =
     exit
     (optionalTextOutput <>
      readInput y ints AssumeValid <>
-     writeOutput [Wildcard <> Value (currentValue x .+. currentValue y) <> Wildcard])
+     writeOutput [wildcard <> value (currentValue x .+. currentValue y) <> wildcard])
   ) <>
-  writeOutput [Wildcard <> Value (length' $ as @[Integer] $ allValues y) <> Wildcard]
+  writeOutput [wildcard <> value (length' $ as @[Integer] $ allValues y) <> wildcard]
   where
     x = intVar "x"
     y = intVar "y"
