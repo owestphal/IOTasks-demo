@@ -190,7 +190,7 @@ const productExample =
 
 args :: Args
 args = stdArgs
--- set avoidOverflows = True to potentially generate input
+-- set avoidOverflows = False to potentially generate input
 -- sequences that overflow/underflow the range of Ints
 -- (avoidOverflows stdArgs = True by default)
 
