@@ -186,10 +186,10 @@ program = do
 `
 
 const productExample =
-`-- Example loaded: Product (overflow checks)
+`-- Example loaded: Product (potential for overflows)
 
 args :: Args
-args = stdArgs
+args = stdArgs { avoidOverflows = True }
 -- set avoidOverflows = False to potentially generate input
 -- sequences that overflow/underflow the range of Ints
 -- (avoidOverflows stdArgs = True by default)
