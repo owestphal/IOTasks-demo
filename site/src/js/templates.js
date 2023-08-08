@@ -136,7 +136,7 @@ specification =
   readInput x ints AssumeValid <>
   tillExit (
     readInput x ints AssumeValid <>
-    branch (currentValue' x 1 .+. currentValue x .==. intLit 0)
+    branch (valueBefore 1 x .+. currentValue x .==. intLit 0)
     exit
     nop
   ) <>
