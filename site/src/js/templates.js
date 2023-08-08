@@ -52,10 +52,8 @@ args = stdArgs
 specification :: Specification
 specification =
   readInput n nats AssumeValid <>
-  tillExit (
-    branch (length' (as @[Integer] $ allValues x) .==. currentValue n)
-      exit
-      (readInput x ints AssumeValid)
+  whileNot (length' (as @[Integer] $ allValues x) .==. currentValue n) (
+    readInput x ints AssumeValid
   ) <>
   writeOutput [value $ sum' $ allValues x]
   where
@@ -93,11 +91,9 @@ args = stdArgs
 specification :: Specification
 specification =
   readInput n nats AssumeValid <>
-  tillExit (
-    branch (length' (as @[Integer] $ allValues x) .==. currentValue n)
-    exit
-    (writeOptionalOutput [value $ currentValue n .-. length' (as @[Integer] $ allValues x)] <>
-    readInput x ints AssumeValid)
+  whileNot (length' (as @[Integer] $ allValues x) .==. currentValue n) (
+    writeOptionalOutput [value $ currentValue n .-. length' (as @[Integer] $ allValues x)] <>
+    readInput x ints AssumeValid
   ) <>
   writeOutput [value $ sum' $ allValues x]
   where
@@ -137,12 +133,8 @@ args = stdArgs
 specification :: Specification
 specification =
   readInput x ints AssumeValid <>
-  tillExit (
-    readInput x ints AssumeValid <>
-    branch (valueBefore 1 x .+. currentValue x .==. intLit 0)
-    exit
-    nop
-  ) <>
+  (readInput x ints AssumeValid
+   `repeatUntil` (valueBefore 1 x .+. currentValue x .==. intLit 0)) <>
   writeOutput [value $ length' $ as @[Integer] $ allValues x]
   where
     x = intVar "x"
@@ -175,10 +167,8 @@ args = stdArgs
 
 specification :: Specification
 specification =
-  tillExit (
-    branch (length' (as @[Integer] $ allValues x) .<. intLit 2)
-      (readInput x nats AssumeValid)
-      exit
+  while (length' (as @[Integer] $ allValues x) .<. intLit 2) (
+    readInput x nats AssumeValid
   )
   where x = intVar "x"
 
@@ -201,10 +191,8 @@ args = stdArgs { avoidOverflows = True }
 specification :: Specification
 specification =
   readInput n nats AssumeValid <>
-  tillExit (
-    branch (length' (as @[Integer] $ allValues x) .==. currentValue n)
-      exit
-      (readInput x ints AssumeValid)
+  whileNot (length' (as @[Integer] $ allValues x) .==. currentValue n) (
+    readInput x ints AssumeValid
   ) <>
   writeOutput [value $ product' $ allValues x]
   where
@@ -244,14 +232,11 @@ args = stdArgs{ maxIterationUnfold = 10 }
 specification :: Specification
 specification =
   readInput x ints AssumeValid <>
-  tillExit (
-    branch (sum' (as @[Integer] $ allValues x) .>. intLit 0)
-      exit
-      (readInput x ints AssumeValid <>
-        branch (currentValue x .>. intLit 0)
-          (writeOutput [text "positive"])
-          (writeOutput [text "not positive"])
-      )
+  whileNot (sum' (as @[Integer] $ allValues x) .>. intLit 0) (
+    readInput x ints AssumeValid <>
+    branch (currentValue x .>. intLit 0)
+      (writeOutput [text "positive"])
+      (writeOutput [text "not positive"])
   )
   where
     x = intVar "x"
@@ -305,10 +290,10 @@ specification =
     optionalTextOutput <>
     readInput x ints AssumeValid <>
     branch (currentValue x .==. intLit 0)
-    exit
-    (optionalTextOutput <>
-     readInput y ints AssumeValid <>
-     writeOutput [wildcard <> value (currentValue x .+. currentValue y) <> wildcard])
+      exit
+      (optionalTextOutput <>
+       readInput y ints AssumeValid <>
+       writeOutput [wildcard <> value (currentValue x .+. currentValue y) <> wildcard])
   ) <>
   writeOutput [wildcard <> value (length' $ as @[Integer] $ allValues y) <> wildcard]
   where
