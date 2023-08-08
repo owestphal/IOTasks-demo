@@ -220,7 +220,7 @@ program = do
   n <- readLn
   let
     -- change first parameter to Int to trigger rejection of the
-    -- program with checkOverflows = False
+    -- program during testing with avoidOverflows = False
     loop :: MonadTeletype io => Integer -> Integer -> io ()
     loop p m
       | m == n  = print p
