@@ -5,7 +5,7 @@ function initTerminal() {
   function emptyCallback(line) {
     if (line == "program") {
       term.clear()
-      document.getElementById("btn-run-io").click()
+      document.getElementById("btn-run").click()
     }
   }
 
