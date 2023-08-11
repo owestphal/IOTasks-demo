@@ -223,13 +223,16 @@ runIO st = do
   putStrLn "INFO: terminated"
 
 runSpec :: SessionState a -> IO ()
-runSpec st = do
-  inputs <- readLn @[String]
-  let (trace,warn) = runSpecification (specification st) inputs
-  when (warn == OverflowOccurred) $
-    putStrLn "INFO: Overflow of Int range detected"
-  putStrLn $ pPrintTrace $ normalizedTrace trace
-  putStrLn "INFO: terminated"
+runSpec st =
+  let
+    action = do
+      inputs <- readLn @[String]
+      let (trace,warn) = runSpecification (specification st) inputs
+      when (warn == OverflowOccurred) $
+        putStrLn "INFO: Overflow of Int range detected"
+      putStrLn (pPrintTrace $ normalizedTrace trace)
+      putStrLn "INFO: terminated"
+  in action `catch`(\(SomeException e) -> putStrLn (clean (tempPath st) $ displayException e))
 
 type ProgramSrc = String
 type ErrorMsg = String
