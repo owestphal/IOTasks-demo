@@ -43,7 +43,7 @@ program = undefined
 `
 
 const sumExample =
-`-- Example loaded: Summation
+`-- Example loaded: Sum
 
 args :: Args
 args = stdArgs
@@ -83,7 +83,7 @@ program = do
 `
 
 const sumExampleWithOutput =
-`-- Example loaded: Summation with optional output
+`-- Example loaded: Sum, with optional output
 
 args :: Args
 args = stdArgs
