@@ -24,13 +24,14 @@ import System.IO.Temp (withTempFile)
 import System.IO (hPutStr,hClose, hSetBuffering, stdout, BufferMode(..))
 import Control.Exception (catch, throw, Exception(..), SomeException(..))
 import Control.Concurrent.Async (race_, concurrently_,)
-import Control.Monad (void, forM_, replicateM_)
+import Control.Monad (void, forM_, replicateM_, when)
 import Control.Concurrent.STM
 import System.Timeout (timeout)
 
-import Test.IOTasks as Constraints (Specification, Args(..))
+import Test.IOTasks as Constraints (Specification, Args(..), runSpecification)
 import Test.IOTasks.Random as Random (Args(..), genInput)
 import Test.IOTasks.Constraints (paths,constraintTree, pathDepth)
+import Test.IOTasks.Trace (normalizedTrace, pPrintTrace)
 import Test.IOTasks.ValueSet (Size(..))
 import Test.IOTasks.Z3 (evalPathScript, SatResult (..), satPathsQ, findPathInput)
 
@@ -38,6 +39,7 @@ import Test.QuickCheck (generate)
 
 import Context
 import MonitoredIO
+import Test.IOTasks.Overflow
 
 runMain :: IO ()
 runMain = do
@@ -99,6 +101,10 @@ newConstraintSession m s t a = ConstraintSession s t a m
 newRandomSession :: IO () -> Specification -> FilePath -> Random.Args -> MonitoredIO () -> SessionState RandomType
 newRandomSession m s t a = RandomSession s t a m
 
+specification :: SessionState a -> Specification
+specification (ConstraintSession s _ _ _ _) = s
+specification (RandomSession s _ _ _ _) = s
+
 mainProgram :: SessionState a -> IO ()
 mainProgram (RandomSession _ _ _ p _) = p
 mainProgram (ConstraintSession _ _ _ p _) = p
@@ -123,6 +129,7 @@ sessionLoop st = case st of
         "run" -> runProgram st >> randomSession
         "sample_input" -> sampleInput st >> randomSession
         "run_io" -> runIO st >> randomSession
+        "run_spec" -> runSpec st >> randomSession
         "exit" -> pure ()
         "" -> randomSession
         _ -> error "unknown command"
@@ -134,6 +141,7 @@ sessionLoop st = case st of
         "smt_code" -> smtCode st >> constraintsSession
         "sample_input" -> sampleInput st >> constraintsSession
         "run_io" -> runIO st >> constraintsSession
+        "run_spec" -> runSpec st >> constraintsSession
         "exit" -> pure ()
         "" -> constraintsSession
         _ -> error "unknown command"
@@ -212,6 +220,15 @@ runIO :: SessionState a -> IO ()
 runIO st = do
   void $ timeout (minutes 1) $
     abortableWith '~' (ioProgram st) `catch` (\(SomeException e) -> Nothing <$ putStrLn (clean (tempPath st) $ displayException e))
+  putStrLn "INFO: terminated"
+
+runSpec :: SessionState a -> IO ()
+runSpec st = do
+  inputs <- readLn @[String]
+  let (trace,warn) = runSpecification (specification st) inputs
+  when (warn == OverflowOccurred) $
+    putStrLn "INFO: Overflow of Int range detected"
+  putStrLn $ pPrintTrace $ normalizedTrace trace
   putStrLn "INFO: terminated"
 
 type ProgramSrc = String
