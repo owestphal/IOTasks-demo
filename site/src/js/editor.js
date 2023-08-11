@@ -112,8 +112,8 @@ function setOverflowStatus(val) {
 function setArmed(val, onclose=false) {
   appState.armed = val
   if (!onclose) {
-    output.innerHTML=""
-    document.getElementById("output-more").innerHTML=""
+    output.textContent=""
+    document.getElementById("output-more").textContent=""
   }
   if (val) {
     // reset need for recompile
@@ -159,16 +159,16 @@ function setupConstraints(val) {
 }
 
 const moreText = "More"
-document.getElementById("btn-more").innerHTML=moreText+" ▶"
+document.getElementById("btn-more").textContent=moreText+" ▶"
 function toggleMore() {
   if (appState.showMore) {
     document.getElementById("div-input").classList.add("hidden")
     document.getElementById("div-smt").classList.add("hidden")
-    document.getElementById("btn-more").innerHTML=moreText+" ▶"
+    document.getElementById("btn-more").textContent=moreText+" ▶"
   } else {
     document.getElementById("div-input").classList.remove("hidden")
     document.getElementById("div-smt").classList.remove("hidden")
-    document.getElementById("btn-more").innerHTML=moreText+" ◀"
+    document.getElementById("btn-more").textContent=moreText+" ◀"
   }
   appState.showMore = !appState.showMore;
 }
@@ -213,8 +213,8 @@ function updateMoreView() {
 function updateProblemDispaly() {
   document.getElementById("smt-controls").classList.remove("hidden")
 
-  document.getElementById("problem-count").innerHTML = String(appState.currentProblem+1) + "/" +appState.smtProblems.length
-  document.getElementById("output-more").innerHTML = appState.smtProblems[appState.currentProblem]
+  document.getElementById("problem-count").textContent = String(appState.currentProblem+1) + "/" +appState.smtProblems.length
+  document.getElementById("output-more").textContent = appState.smtProblems[appState.currentProblem]
 }
 
 function setRecompileNeeded(val) {
@@ -285,7 +285,7 @@ function sendSrc() {
       setArmed(false)
     }
     appState.busy = true
-    output.innerHTML=""
+    output.textContent=""
 
     // hide terminal
     setTerminalVisibility(false)
@@ -312,14 +312,14 @@ function sendSrc() {
       switch (msg.data) {
         case "INFO: success":
           setArmed(true)
-          document.getElementById("output").innerHTML="Compiled successfully."
+          document.getElementById("output").textContent="Compiled successfully."
           appState.lastCompiledSrc=src
           updateRecompileInfo()
           break;
         case "INFO: failure":
           break;
         default:
-          document.getElementById("output").innerHTML+=msg.data+"\n"
+          document.getElementById("output").textContent+=msg.data+"\n"
       }
       appState.busy = false
     }
@@ -341,7 +341,7 @@ function runProgram() {
     setOverflowStatus(false)
     setTerminalVisibility(false)
 
-    output.innerHTML=""
+    output.textContent=""
     appState.ws.onmessage = msg => {
       let str = msg.data + "\n";
 
@@ -351,7 +351,7 @@ function runProgram() {
           appState.busy = false
           return
         case "AsyncCancelled":
-          document.getElementById("output").innerHTML+="Stopped"
+          document.getElementById("output").textContent+="Stopped"
           break;
         default:
           switch (true) {
@@ -361,22 +361,22 @@ function runProgram() {
               return;
             // test if output should be cleared
             case str.search(/tests\)/) >= 0: // during testing
-              output.innerHTML = "";
+              output.textContent = "";
               break;
             case str.search(/generated/) >= 0: // finished constant based testing
-              output.innerHTML = "";
+              output.textContent = "";
               break;
-            case str.search(/overflows/) >= 0 && output.innerHTML.search(/generated/) < 0: // finished random testing, all outcomes + overflows
-              output.innerHTML = "";
+            case str.search(/overflows/) >= 0 && output.textContent.search(/generated/) < 0: // finished random testing, all outcomes + overflows
+              output.textContent = "";
               break;
-            case str.search(/\+\+\+/) >= 0 && output.innerHTML.search(/generated/) < 0 && output.innerHTML.search(/overflows/) < 0: // finished random testing success (no overflows)
-              output.innerHTML = "";
+            case str.search(/\+\+\+/) >= 0 && output.textContent.search(/generated/) < 0 && output.textContent.search(/overflows/) < 0: // finished random testing success (no overflows)
+              output.textContent = "";
               break;
-            case str.search(/\*\*\*/) >= 0 && output.innerHTML.search(/generated/) < 0 && output.innerHTML.search(/overflows/) < 0: // finished random testing failure/gave up <(no overflows)
-              output.innerHTML = "";
+            case str.search(/\*\*\*/) >= 0 && output.textContent.search(/generated/) < 0 && output.textContent.search(/overflows/) < 0: // finished random testing failure/gave up <(no overflows)
+              output.textContent = "";
               break;
             }
-            output.innerHTML += str;
+            output.textContent += str;
           }
         }
     appState.ws.send("run")
@@ -405,7 +405,7 @@ function runSMTCode() {
   if (appState.armed && !appState.busy) {
     appState.busy = true
     updateMoreView()
-    document.getElementById("output-more").innerHTML = ""
+    document.getElementById("output-more").textContent = ""
 
     appState.currentProblem = 0
     appState.smtProblems = []
@@ -418,15 +418,15 @@ function runSMTCode() {
             stopToStart()
             switch (true) {
               case buffer != "": // Assumption: no paths found due to exception in specification
-                document.getElementById("output-more").innerHTML = buffer
+                document.getElementById("output-more").textContent = buffer
                 break
-              case document.getElementById("output-more").innerHTML == "":
-                document.getElementById("output-more").innerHTML = "the specification has no paths of exactly the requested length"
+              case document.getElementById("output-more").textContent == "":
+                document.getElementById("output-more").textContent = "the specification has no paths of exactly the requested length"
                 break
             }
             break;
         case "AsyncCancelled":
-          document.getElementById("output-more").innerHTML+="Stopped"
+          document.getElementById("output-more").textContent+="Stopped"
           break;
         case "INFO: end of smt problem":
           appState.smtProblems.push(buffer)
@@ -448,7 +448,7 @@ function runSampleInput() {
   if (appState.armed && !appState.busy) {
     appState.busy = true
     updateMoreView()
-    document.getElementById("output-more").innerHTML = ""
+    document.getElementById("output-more").textContent = ""
     appState.ws.onmessage = msg => {
       switch (msg.data) {
         case "INFO: terminated":
@@ -456,10 +456,10 @@ function runSampleInput() {
             stopToStart()
           break;
         case "AsyncCancelled":
-          document.getElementById("output-more").innerHTML+="Stopped"
+          document.getElementById("output-more").textContent+="Stopped"
           break;
         default:
-          document.getElementById("output-more").innerHTML += msg.data + "\n"
+          document.getElementById("output-more").textContent += msg.data + "\n"
       }
     }
     startToStop()
