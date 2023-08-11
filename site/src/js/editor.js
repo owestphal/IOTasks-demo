@@ -97,6 +97,7 @@ const appState = {
   currentProblem : 0,
   needsRecompile : false,
   lastCompiledSrc : null,
+  runMethod : () => output.textContent = "please choose an artifact to run",
 }
 
 function setOverflowStatus(val) {
@@ -120,7 +121,7 @@ function setArmed(val, onclose=false) {
     updateRecompileInfo(false)
     // show armed controls
     document.getElementById("run-button").classList.remove("grayscale")
-    document.getElementById("btn-run-io").classList.remove("grayscale")
+    document.getElementById("artifact-menu").classList.remove("grayscale")
     document.getElementById("div-input").classList.remove("grayscale")
     document.getElementById("div-smt").classList.remove("grayscale")
   } else {
@@ -133,7 +134,7 @@ function setArmed(val, onclose=false) {
     appState.lastCompiledSrc = null
     // hide armed controls
     document.getElementById("run-button").classList.add("grayscale")
-    document.getElementById("btn-run-io").classList.add("grayscale")
+    document.getElementById("artifact-menu").classList.add("grayscale")
     document.getElementById("div-input").classList.add("grayscale")
     document.getElementById("div-smt").classList.add("grayscale")
   }
@@ -192,10 +193,10 @@ function setSendConstraints(val) {
 function setTerminalVisibility(val) {
   if (val) {
     document.getElementById("console").classList.remove("hidden")
-    document.getElementById("output").classList.add("hidden")
+    document.getElementById("output-with-controls").classList.add("hidden")
   } else {
     document.getElementById("console").classList.add("hidden")
-    document.getElementById("output").classList.remove("hidden")
+    document.getElementById("output-with-controls").classList.remove("hidden")
   }
 }
 
@@ -226,6 +227,53 @@ function setRecompileNeeded(val) {
   }
 }
 
+function setRunContext(ctx) {
+  let f = () => {
+    resetRunUI()
+    document.getElementById("artifact-menu-btn").textContent = document.getElementById("btn-"+ctx).textContent
+    switch (ctx) {
+      case "main":
+        appState.runMethod = runProgram
+        break
+      case "io":
+        appState.runMethod = runIO
+        setTerminalVisibility(true)
+        break
+      case "spec":
+        appState.runMethod = runSpec
+        document.getElementById("run-spec-controls").classList.remove("hidden")
+        output.classList.add("h-[93%]")
+        output.classList.remove("h-full")
+        break
+    }
+    toggleArtifactMenu()
+  }
+  return f
+}
+
+function resetRunUI() {
+  setOverflowStatus(false)
+  setTerminalVisibility(false)
+  output.textContent=""
+  document.getElementById("run-spec-controls").classList.add("hidden")
+  output.classList.remove("h-[93%]")
+  output.classList.add("h-full")
+}
+
+const toggleArtifactMenu = toggleArtifactMenuInit()
+function toggleArtifactMenuInit() {
+  let status = false
+  let f = () => {
+    if (status) {
+      document.getElementById("artifact-menu-list").classList.add("hidden")
+    } else {
+      document.getElementById("artifact-menu-list").classList.remove("hidden")
+    }
+    status = !status
+  }
+  return f
+}
+
 // setup buttons
 document.getElementById("btn-constraints").addEventListener("click",loadSetup(constraintSetup));
 document.getElementById("btn-constraints").addEventListener("click",() => setupConstraints(true));
@@ -242,9 +290,12 @@ document.getElementById("btn-singlePath").addEventListener("click",loadExample(s
 document.getElementById("btn-fullTree").addEventListener("click",loadExample(fullTree));
 document.getElementById("btn-stringExample").addEventListener("click",loadExample(stringExample));
 document.getElementById("compile-button").addEventListener("click",sendSrc);
-document.getElementById("run-button").addEventListener("click",runProgram);
 
-document.getElementById("btn-run-io").addEventListener("click",runIO);
+document.getElementById("run-button").addEventListener("click",() => appState.runMethod());
+document.getElementById("artifact-menu-btn").addEventListener("click",toggleArtifactMenu)
+document.getElementById("btn-main").addEventListener("click",setRunContext("main"));
+document.getElementById("btn-io").addEventListener("click",setRunContext("io"));
+document.getElementById("btn-spec").addEventListener("click",setRunContext("spec"));
 
 document.getElementById("btn-more").addEventListener("click",toggleMore);
 document.getElementById("btn-smt-code").addEventListener("click",runSMTCode);
@@ -287,9 +338,6 @@ function sendSrc() {
     appState.busy = true
     output.textContent=""
 
-    // hide terminal
-    setTerminalVisibility(false)
-    // reset overflow status
     setOverflowStatus(false)
 
     appState.ws = new WebSocket(websocketURL)
@@ -517,5 +565,33 @@ function runIO() {
     term.onUserInputLine(line => {
       appState.ws.send(line)
     })
+  }
+}
+
+function runSpec() {
+  if (appState.armed && !appState.busy) {
+    appState.busy = true
+
+    output.textContent = ""
+    setOverflowStatus(false)
+
+    appState.ws.onmessage = msg => {
+      switch (msg.data) {
+        case "INFO: Overflow of Int range detected":
+          setOverflowStatus(true)
+          break;
+        case "INFO: terminated":
+          appState.busy = false
+          stopToStart()
+          break
+        default:
+          output.textContent += msg.data
+      }
+    }
+    appState.ws.send("run_spec")
+    let str = document.getElementById("input-seq").value
+    appState.ws.send('['+str+']')
+    startToStop()
+
   }
 }

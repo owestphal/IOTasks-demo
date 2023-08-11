@@ -81,9 +81,19 @@
     </div>
 
     <div class="flex flex-row gap-3 justify-between mt-2">
-      <button id="run-button" class="grayscale w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Run main</button>
-      <button id="stop-button" class="hidden w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Stop</button>
-      <button id="btn-run-io" class="grayscale w-48 text-white text-xs font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Run program @IO</button>
+      <button id="run-button" class="grayscale w-16 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">▶</button>
+      <button id="stop-button" class="hidden w-16 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">◼</button>
+
+      <div id="artifact-menu" class="grayscale relative z-20">
+        <button id="artifact-menu-btn" class="h-full w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">...</button>
+        <div id="artifact-menu-list" class="absolute hidden">
+          <button id="btn-main" class="w-32 text-white text-xs font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">main</button>
+          <button id="btn-io" class="w-32 text-white text-xs font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">program @IO</button>
+          <button id="btn-spec" class="w-32 text-white text-xs font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">specification</button>
+        </div>
+      </div>
+
+
       <button id="btn-more" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900"></button>
     </div>
 
@@ -115,10 +125,16 @@
       <div id="overflow" class="hidden p-2 w-48 font-normal bg-red-600 text-white rounded text-center">overflow detected</div>
     </div>
 
-    <div id="console" class="hidden col-span-3 bg-gray-100 rounded m-2 mr-1 shadow-2xl"></div>
+    <div id="console" class="hidden col-span-3 bg-gray-100 rounded m-2 mr-1 shadow-2xl z-10"></div>
 
-
-    <div id="output" class="font-mono whitespace-pre-wrap overflow-auto italic col-span-3 bg-gray-100 rounded m-2 mr-1 shadow-2xl"></div>
+    <div id="output-with-controls" class="col-span-3 m-2 mr-1 font-mono">
+      <div id="run-spec-controls" class="h-[7%] hidden">
+        <span>Input sequence: [</span>
+        <input type="text" id="input-seq" class="w-2/3 focus:outline-none valid:bg-green-100 invalid:bg-red-100" pattern='"[\-\w]+"(,"[\-\w]+")*' value='"2","4","-3"'/>
+        <span>]</span>
+      </div>
+      <div id="output" class="h-full whitespace-pre-wrap overflow-auto italic bg-gray-100 rounded shadow-2xl"></div>
+    </div>
     <div id="output-more" class="font-mono whitespace-pre-wrap overflow-auto italic col-span-2 bg-gray-100 rounded m-2 ml-1 shadow-2xl"></div>
 
     <footer class="col-span-full text-white bg-gray-700 rounded ">&copy 2023</footer>
