@@ -251,6 +251,12 @@ function setRunContext(ctx) {
   return f
 }
 
+function resetContext() {
+  appState.runMethod = null
+  document.getElementById("artifact-menu-btn").textContent = "..."
+  resetRunUI()
+}
+
 function resetRunUI() {
   setOverflowStatus(false)
   setTerminalVisibility(false)
@@ -338,6 +344,7 @@ function sendSrc() {
     appState.busy = true
     output.textContent=""
 
+    resetContext()
     setOverflowStatus(false)
 
     appState.ws = new WebSocket(websocketURL)
