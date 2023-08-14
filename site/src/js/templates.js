@@ -39,6 +39,7 @@ specification :: Specification
 specification = undefined
 
 program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
 program = undefined
 `
 
@@ -71,6 +72,7 @@ specification =
  -}
 
 program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
 program = do
   n <- readLn
   let
@@ -114,6 +116,7 @@ specification =
  -}
 
 program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
 program = do
   n <- readLn
   let
@@ -151,6 +154,7 @@ specification =
  -}
 
 program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
 program = do
   x <- readLn
   loop x 1
@@ -179,6 +183,7 @@ specification =
   where x = intVar "x"
 
 program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
 program = do
   getLine
   getLine
@@ -215,6 +220,7 @@ specification =
  -}
 
 program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
 program = do
   n <- readLn
   let
@@ -274,6 +280,7 @@ specification =
  -}
 
 program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
 program = do
   x <- readLn
   let
@@ -321,6 +328,7 @@ specification =
  -}
 
 program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
 program = loop 0
   where
     loop n = do
