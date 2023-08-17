@@ -1,7 +1,8 @@
 import 'expect-puppeteer'
 
 beforeAll(async () => {
-  await page.goto("http://localhost:1234");
+  await page.setViewport({width: 1920, height: 1080})
+  await page.goto("http://localhost:1234")
 })
 
 beforeEach(async () => {
