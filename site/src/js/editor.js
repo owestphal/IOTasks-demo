@@ -97,7 +97,13 @@ const appState = {
   currentProblem : 0,
   needsRecompile : false,
   lastCompiledSrc : null,
-  runMethod : () => output.textContent = "please choose an artifact to run",
+  runMethod : defaultRunMethod,
+}
+
+function defaultRunMethod() {
+  if (appState.armed) {
+    output.textContent = "please choose an artifact to run"
+  }
 }
 
 function setOverflowStatus(val) {
@@ -252,7 +258,7 @@ function setRunContext(ctx) {
 }
 
 function resetContext() {
-  appState.runMethod = null
+  appState.runMethod = defaultRunMethod
   document.getElementById("artifact-menu-btn").textContent = "..."
   resetRunUI()
 }
