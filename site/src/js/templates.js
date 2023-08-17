@@ -134,7 +134,7 @@ specification :: Specification
 specification =
   readInput x ints AssumeValid <>
   (readInput x ints AssumeValid
-   `repeatUntil` (valueBefore 1 x .+. currentValue x .==. intLit 0)) <>
+  \`repeatUntil\` (valueBefore 1 x .+. currentValue x .==. intLit 0)) <>
   writeOutput [value $ length' $ as @[Integer] $ allValues x]
   where
     x = intVar "x"
