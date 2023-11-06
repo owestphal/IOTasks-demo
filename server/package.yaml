@@ -19,7 +19,7 @@ dependencies:
 - base >= 4.7 && < 5
 - bytestring
 - directory
-- ghc == 9.4.5
+- ghc == 9.4.7
 - ghc-paths
 - IOTasks
 - QuickCheck
