@@ -32,7 +32,7 @@ describe("Example compilation", () => {
   ,"Product (potential for overflows)"
   ,"Single path"
   ,"Exponentially many sat. paths"
-  ,"String output"
+  ,"Handling string output"
   ,"Basic setup"
   ].forEach((example) => it('should work for "'+example+'"', compileExample(example)))
 

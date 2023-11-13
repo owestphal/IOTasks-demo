@@ -279,7 +279,7 @@ program = do
 `
 
 const stringExample =
-`-- Example loaded: String output
+`-- Example loaded: Handling string output
 
 args :: Args
 args = stdArgs
