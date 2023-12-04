@@ -5,7 +5,7 @@ packages:
 
 extra-deps:
 - git: https://github.com/fmidue/IOTasks
-  commit: f69dc90cd73bdf3bc7f126855c3e168bf5c1ae1a
+  commit: 7c8ebe4c290597b1ab49a0433e4ebf54f1665746
 - git: https://github.com/IagoAbal/haskell-z3
   commit: b77a17e5eeb7db82656bcbcd66c6e952207e69ca
 - git: https://github.com/owestphal/type-match

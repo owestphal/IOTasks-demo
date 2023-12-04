@@ -287,11 +287,11 @@ args = stdArgs
 specification :: Specification
 specification =
   tillExit (
-    optionalTextOutput <>
+    anyOptionalOutput <>
     readInput x ints AssumeValid <>
     branch (currentValue x .==. intLit 0)
       exit
-      (optionalTextOutput <>
+      (anyOptionalOutput <>
        readInput y ints AssumeValid <>
        writeOutput [wildcard <> value (currentValue x .+. currentValue y) <> wildcard])
   ) <>
