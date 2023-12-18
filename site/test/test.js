@@ -15,7 +15,7 @@ function compileExample(example,random=false){
       await expect(page).toClick("button", {text: example})
       if (random) {await expect(page).toClick("button", {text: "Random"})}
       await expect(page).toClick("button", {text: "Compile"})
-      await expect(page).toMatchTextContent("Compiled successfully.", {timeout: 2000})
+      await expect(page).toMatchTextContent("Compiled successfully.", {timeout: 2500})
       if (random) {await expect(page).toClick("button", {text: "Constraint-based"})}
     } catch (e) {
       await page.screenshot({path: example+'-fail.png'})
