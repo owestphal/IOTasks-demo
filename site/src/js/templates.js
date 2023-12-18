@@ -55,7 +55,7 @@ specification =
   whileNot (length' (as @[Integer] $ allValues x) .==. currentValue n) (
     readInput x ints AssumeValid
   ) <>
-  writeOutput [value $ sum' $ allValues x]
+  writeOutput [resultOf $ sum' $ allValues x]
   where
     n = intVar "n"
     x = intVar "x"
@@ -92,10 +92,10 @@ specification :: Specification
 specification =
   readInput n nats AssumeValid <>
   whileNot (length' (as @[Integer] $ allValues x) .==. currentValue n) (
-    writeOptionalOutput [value $ currentValue n .-. length' (as @[Integer] $ allValues x)] <>
+    writeOptionalOutput [resultOf $ currentValue n .-. length' (as @[Integer] $ allValues x)] <>
     readInput x ints AssumeValid
   ) <>
-  writeOutput [value $ sum' $ allValues x]
+  writeOutput [resultOf $ sum' $ allValues x]
   where
     n = intVar "n"
     x = intVar "x"
@@ -135,7 +135,7 @@ specification =
   readInput x ints AssumeValid <>
   (readInput x ints AssumeValid
   \`repeatUntil\` (valueBefore 1 x .+. currentValue x .==. intLit 0)) <>
-  writeOutput [value $ length' $ as @[Integer] $ allValues x]
+  writeOutput [resultOf $ length' $ as @[Integer] $ allValues x]
   where
     x = intVar "x"
 
@@ -194,7 +194,7 @@ specification =
   whileNot (length' (as @[Integer] $ allValues x) .==. currentValue n) (
     readInput x ints AssumeValid
   ) <>
-  writeOutput [value $ product' $ allValues x]
+  writeOutput [resultOf $ product' $ allValues x]
   where
     n = intVar "n"
     x = intVar "x"
@@ -293,9 +293,9 @@ specification =
       exit
       (anyOptionalOutput <>
        readInput y ints AssumeValid <>
-       writeOutput [wildcard <> value (currentValue x .+. currentValue y) <> wildcard])
+       writeOutput [wildcard <> resultOf (currentValue x .+. currentValue y) <> wildcard])
   ) <>
-  writeOutput [wildcard <> value (length' $ as @[Integer] $ allValues y) <> wildcard]
+  writeOutput [wildcard <> resultOf (length' $ as @[Integer] $ allValues y) <> wildcard]
   where
     x = intVar "x"
     y = intVar "y"
