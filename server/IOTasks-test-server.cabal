@@ -42,7 +42,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , directory
-    , ghc ==9.4.7
+    , ghc ==9.4.8
     , ghc-paths
     , stm
     , temporary
@@ -64,7 +64,7 @@ executable ghc-server
     , base >=4.7 && <5
     , bytestring
     , directory
-    , ghc ==9.4.7
+    , ghc ==9.4.8
     , ghc-paths
     , stm
     , temporary
@@ -87,7 +87,7 @@ test-suite server-test
     , base >=4.7 && <5
     , bytestring
     , directory
-    , ghc ==9.4.7
+    , ghc ==9.4.8
     , ghc-paths
     , hspec
     , hspec-wai

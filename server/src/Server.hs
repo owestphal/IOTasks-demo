@@ -31,7 +31,7 @@ import System.Timeout (timeout)
 import Test.IOTasks as Constraints (Specification, Args(..), runSpecification)
 import Test.IOTasks.Random as Random (Args(..), genInput)
 import Test.IOTasks.Constraints (paths,constraintTree, pathDepth)
-import Test.IOTasks.Trace (normalizedTrace, showTrace)
+import Test.IOTasks.Trace (normalizedTrace, showTraceN)
 import Test.IOTasks.ValueSet (Size(..))
 import Test.IOTasks.Z3 (evalPathScript, SatResult (..), satPathsQ, findPathInput)
 
@@ -230,7 +230,7 @@ runSpec st =
       let (trace,warn) = runSpecification (specification st) inputs
       when (warn == OverflowOccurred) $
         putStrLn "INFO: Overflow of Int range detected"
-      putStrLn (showTrace $ normalizedTrace trace)
+      print (showTraceN $ normalizedTrace trace)
       putStrLn "INFO: terminated"
   in action `catch`(\(SomeException e) -> putStrLn (clean (tempPath st) $ displayException e))
 

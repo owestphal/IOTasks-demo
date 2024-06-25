@@ -47,7 +47,7 @@ const sumExample =
 `-- Example loaded: Sum
 
 args :: Args
-args = stdArgs{ simplifyFeedback = True }
+args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = HorizontalTrace } }
 
 specification :: Specification
 specification =
@@ -86,7 +86,7 @@ const sumExampleWithOutput =
 `-- Example loaded: Sum, with optional output
 
 args :: Args
-args = stdArgs{ simplifyFeedback = True }
+args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = HorizontalTrace } }
 
 specification :: Specification
 specification =
@@ -128,7 +128,7 @@ const sumToZero =
 `-- Example loaded: Sum to zero
 
 args :: Args
-args = stdArgs{ simplifyFeedback = True }
+args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = HorizontalTrace } }
 
 specification :: Specification
 specification =
@@ -163,7 +163,7 @@ const singlePath =
 `-- Example loaded: Single path
 
 args :: Args
-args = stdArgs{ simplifyFeedback = True }
+args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = HorizontalTrace } }
 
 specification :: Specification
 specification =
@@ -184,7 +184,7 @@ const productExample =
 `-- Example loaded: Product (potential for overflows)
 
 args :: Args
-args = stdArgs { simplifyFeedback = True, avoidOverflows = True }
+args = stdArgs { avoidOverflows = True, feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = HorizontalTrace } }
 -- set avoidOverflows = False to potentially generate input
 -- sequences that overflow/underflow the range of Ints
 
@@ -227,7 +227,7 @@ const fullTree =
 `-- Example loaded: Exponentially many sat. paths
 
 args :: Args
-args = stdArgs{ simplifyFeedback = True, maxIterationUnfold = 10 }
+args = stdArgs{ maxIterationUnfold = 10, feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = HorizontalTrace } }
 
 specification :: Specification
 specification =
