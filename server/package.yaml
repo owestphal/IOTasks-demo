@@ -9,7 +9,7 @@ extra-source-files:
 - README.md
 - CHANGELOG.md
 
-synopsis:            backend server for demonstrating the Test.IOTaks library
+synopsis:            backend server for demonstrating the Test.IOTasks library
 category:            Web
 
 description:         Please see the README on GitHub at <https://github.com/githubuser/server#readme>
@@ -19,7 +19,7 @@ dependencies:
 - base >= 4.7 && < 5
 - bytestring
 - directory
-- ghc == 9.4.8
+- ghc == 9.4.7
 - ghc-paths
 - IOTasks
 - QuickCheck

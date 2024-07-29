@@ -49,7 +49,7 @@ RUN shopt -s globstar &&\
     rm -rf /root/.stack/**/*Cabal* &&\
     rm -rf /root/.stack/**/*haskeline* &&\
     rm -rf /root/.stack/**/*xhtml* &&\
-    rm /root/.stack/**/ghc-tinfo*.tar.xz
+    rm -f /root/.stack/**/ghc-tinfo*.tar.xz
 
 
 FROM archlinux:latest as main
