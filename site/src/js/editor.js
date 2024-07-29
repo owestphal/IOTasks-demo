@@ -20,6 +20,9 @@ import { emptyTemplate
        , singlePath
        , fullTree
        , stringExample
+       , untilValidExample
+       , greeter
+       , palindrom
        , constraintSetup
        , randomSetup
     } from "./templates.js"
@@ -259,7 +262,7 @@ function setRunContext(ctx) {
 
 function resetContext() {
   appState.runMethod = defaultRunMethod
-  document.getElementById("artifact-menu-btn").textContent = "..."
+  document.getElementById("artifact-menu-btn").textContent = "select artifact"
   resetRunUI()
 }
 
@@ -286,35 +289,67 @@ function toggleArtifactMenuInit() {
   return f
 }
 
+function toogleCollapse(elemPrefix) {
+  return () => {
+    let elemClassList = document.getElementById(elemPrefix+"-collapse").classList
+    let statusElem = document.getElementById(elemPrefix+"-status")
+    if (elemClassList.contains("hidden")) {
+      elemClassList.remove("hidden")
+      statusElem.textContent = "-"
+    } else {
+      elemClassList.add("hidden")
+      statusElem.textContent = "+"
+    }
+  }
+}
+
 // setup buttons
-document.getElementById("btn-constraints").addEventListener("click",loadSetup(constraintSetup));
-document.getElementById("btn-constraints").addEventListener("click",() => setupConstraints(true));
+function setupButton(buttonId,action) {
+  document.getElementById(buttonId).addEventListener("click",action)
+}
 
-document.getElementById("btn-random").addEventListener("click",loadSetup(randomSetup));
-document.getElementById("btn-random").addEventListener("click",() => setupConstraints(false));
+function setupButtons(xs) {
+  xs.forEach((x) => setupButton(x.buttonId,x.action))
+}
 
-document.getElementById("btn-empty").addEventListener("click",loadExample(emptyTemplate));
-document.getElementById("btn-sum").addEventListener("click",loadExample(sumExample));
-document.getElementById("btn-sum2").addEventListener("click",loadExample(sumExampleWithOutput));
-document.getElementById("btn-sumToZero").addEventListener("click",loadExample(sumToZero));
-document.getElementById("btn-overflow").addEventListener("click",loadExample(productExample));
-document.getElementById("btn-singlePath").addEventListener("click",loadExample(singlePath));
-document.getElementById("btn-fullTree").addEventListener("click",loadExample(fullTree));
-document.getElementById("btn-stringExample").addEventListener("click",loadExample(stringExample));
-document.getElementById("compile-button").addEventListener("click",sendSrc);
+setupButtons(
+  [ {buttonId: "btn-constraints", action: loadSetup(constraintSetup)}
+  , {buttonId: "btn-constraints", action: (() => setupConstraints(true))}
 
-document.getElementById("run-button").addEventListener("click",() => appState.runMethod());
-document.getElementById("artifact-menu-btn").addEventListener("click",toggleArtifactMenu)
-document.getElementById("btn-main").addEventListener("click",setRunContext("main"));
-document.getElementById("btn-io").addEventListener("click",setRunContext("io"));
-document.getElementById("btn-spec").addEventListener("click",setRunContext("spec"));
+  , {buttonId: "btn-random", action: loadSetup(randomSetup)}
+  , {buttonId: "btn-random", action: (() => setupConstraints(false))}
 
-document.getElementById("btn-more").addEventListener("click",toggleMore);
-document.getElementById("btn-smt-code").addEventListener("click",runSMTCode);
-document.getElementById("btn-sample-input").addEventListener("click",runSampleInput);
+  , {buttonId: "btn-empty", action: loadExample(emptyTemplate)}
+  , {buttonId: "btn-sum", action: loadExample(sumExample)}
+  , {buttonId: "btn-sum2", action: loadExample(sumExampleWithOutput)}
+  , {buttonId: "btn-sumToZero", action: loadExample(sumToZero)}
+  , {buttonId: "btn-overflow", action: loadExample(productExample)}
+  , {buttonId: "btn-singlePath", action: loadExample(singlePath)}
+  , {buttonId: "btn-fullTree", action: loadExample(fullTree)}
+  , {buttonId: "btn-stringExample", action: loadExample(stringExample)}
+  , {buttonId: "btn-untilValid", action: loadExample(untilValidExample)}
+  , {buttonId: "btn-greeter", action: loadExample(greeter)}
+  , {buttonId: "btn-palindrom", action: loadExample(palindrom)}
+  , {buttonId: "compile-button", action: sendSrc}
 
-document.getElementById("btn-problem-forwards").addEventListener("click",() => changeProblem(1) );
-document.getElementById("btn-problem-backwards").addEventListener("click",() => changeProblem(-1) );
+  , {buttonId: "run-button", action: (() => appState.runMethod())}
+  , {buttonId: "artifact-menu-btn", action: toggleArtifactMenu}
+  , {buttonId: "btn-main", action: setRunContext("main")}
+  , {buttonId: "btn-io", action: setRunContext("io")}
+  , {buttonId: "btn-spec", action: setRunContext("spec")}
+
+  , {buttonId: "btn-more", action: toggleMore}
+  , {buttonId: "btn-smt-code", action: runSMTCode}
+  , {buttonId: "btn-sample-input", action: runSampleInput}
+
+  , {buttonId: "btn-problem-forwards", action: (() => changeProblem(1))}
+  , {buttonId: "btn-problem-backwards", action: (() => changeProblem(-1))}
+
+  , {buttonId: "no-loops-container", action: toogleCollapse("no-loops")}
+  , {buttonId: "simple-loops-container", action: toogleCollapse("simple-loops")}
+  , {buttonId: "complex-loops-container", action: toogleCollapse("complex-loops")}
+  ]
+)
 
 function loadSetup(src) {
   let f = () => {
@@ -325,9 +360,10 @@ function loadSetup(src) {
 }
 
 function loadExample(src) {
-  let f = () => {
+  let f = (event) => {
     let len = srcView.state.doc.length
     srcView.dispatch({changes: {from: 0, to:len, insert: src}})
+    event.stopPropagation()
   }
   return f
 }

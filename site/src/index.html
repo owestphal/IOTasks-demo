@@ -45,14 +45,46 @@
 
     <div class="row-span-2 flex flex-col overflow-auto">
       <span class="p-2 font-black text-center">Examples</span>
-      <button id="btn-sum" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Sum</button>
-      <button id="btn-sum2" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Sum, with optional output</button>
-      <button id="btn-sumToZero" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Sum to zero</button>
-      <button id="btn-overflow" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Product (potential for overflows)</button>
-      <button id="btn-singlePath" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Single path</button>
-      <button id="btn-fullTree" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Exponentially many sat. paths</button>
-      <button id="btn-stringExample" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Handling string output</button>
+
       <button id="btn-empty" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Basic setup</button>
+
+      <div id="no-loops-container" class="relative font-bold rounded select-none border-solid border p-1.5 bg-sky-50 text-sky-900 border-sky-900">
+        <span class="p-1.5">No loops</span>
+        <span id="no-loops-status" class="absolute right-4">+</span>
+        <div id="no-loops-collapse" class="row-span-2 flex flex-col overflow-auto hidden">
+          <button id="btn-greeter" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Greeter</button>
+          <button id="btn-palindrom" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Palindrom</button>
+        </div>
+      </div>
+
+      <div id="simple-loops-container" class="relative font-bold rounded select-none border-solid border p-1.5 bg-sky-50 text-sky-900 border-sky-900">
+        <span class="p-1.5">Simple loops</span>
+        <span id="simple-loops-status" class="absolute right-4"> - </span>
+        <div id="simple-loops-collapse" class="row-span-2 flex flex-col overflow-auto">
+          <button id="btn-sum" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Sum</button>
+          <button id="btn-sum2" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Sum, with optional output</button>
+          <button id="btn-overflow" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Product (potential for overflows)</button>
+          <button id="btn-singlePath" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Single path</button>
+          <button id="btn-stringExample" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Handling string output</button>
+        </div>
+      </div>
+
+      <div id="complex-loops-container" class="relative font-bold rounded select-none border-solid border p-1.5 bg-sky-50 text-sky-900 border-sky-900">
+        <span class="p-1.5">Complex loops</span>
+        <span id="complex-loops-status" class="absolute right-4">+</span>
+        <div id="complex-loops-collapse" class="row-span-2 flex flex-col overflow-auto hidden">
+          <button id="btn-sumToZero" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Sum to zero</button>
+          <button id="btn-untilValid" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Handling ill-formed inputs</button>
+          <button id="btn-fullTree" class="text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">Exponentially many sat. paths</button>
+        </div>
+      </div>
+
+      <a
+        class="text-sky-900 font-bold text-center rounded p-2 border-solid border border-sky-900 bg-sky-50 hover:bg-white hover:border-sky-900"
+        href="https://github.com/fmidue/iotasks-collection"
+        target="_blank">
+        More
+      </a>
     </div>
 
     <div id="srcEditor" class="min-h-0 col-span-3"></div>
@@ -85,7 +117,7 @@
       <button id="stop-button" class="hidden w-16 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">◼</button>
 
       <div id="artifact-menu" class="grayscale relative z-20">
-        <button id="artifact-menu-btn" class="h-full w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">...</button>
+        <button id="artifact-menu-btn" class="h-full w-32 text-white font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">select artifact</button>
         <div id="artifact-menu-list" class="absolute hidden">
           <button id="btn-main" class="w-32 text-white text-xs font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">main</button>
           <button id="btn-io" class="w-32 text-white text-xs font-bold rounded p-1.5 border-solid border border-white bg-sky-900 hover:bg-white hover:text-sky-900 hover:border-sky-900">program @IO</button>

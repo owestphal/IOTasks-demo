@@ -7,6 +7,9 @@ export
   , singlePath
   , fullTree
   , stringExample
+  , untilValidExample
+  , greeter
+  , palindrom
   , constraintSetup
   , randomSetup
   }
@@ -330,4 +333,120 @@ program = loop 0
           putStr ("The sum of " ++ show x ++ " and " ++ show y ++ " is ")
           print (x + y)
           loop (n + 1)
+`
+
+const untilValidExample =
+`-- Example loaded: Handling ill-formed inputs
+
+args :: Args
+args = stdArgs{ maxNegative = 2, maxIterationUnfold = 10, feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = VerticalTrace } }
+
+specification :: Specification
+specification =
+  tillExit (
+    anyOptionalOutput <>
+    readInput x nats UntilValid <>
+    branch (currentValue x .==. intLit 0)
+      exit
+      (anyOptionalOutput <>
+       readInput y nats UntilValid <>
+       writeOutput [wildcard <> resultOf (currentValue x .+. currentValue y) <> wildcard])
+  ) <>
+  writeOutput [wildcard <> resultOf (length' $ as @[Integer] $ allValues y) <> wildcard]
+  where
+    x = intVar "x"
+    y = intVar "y"
+
+{- Write a program that reads in two non-negative integers
+ - and prints out their sum. This behavior is repeated until the first
+ - of the two numbers read is 0. The program then terminates (not
+ - reading a second number), printing the count of additions
+ - performed.
+ -
+ - When reading a negative integer the program should prompt for a new
+ - number, until the read number is non-negative.
+ -
+ - You can add additional information to both the output of the
+ - addition results as well as the final output. Furthermore you might
+ - want to add additional outputs to indicate what the user has to do
+ - next.
+ -}
+
+program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
+program = loop 0
+  where
+    loop n = do
+      putStr "First number or 0 to exit: "
+      x <- readPositive
+      if x == 0
+        then do
+          putStrLn "Exiting program"
+          putStr "The number of additions performed was: "
+          print n
+        else do
+          putStr "Second number: "
+          y <- readPositive
+          putStr ("The sum of " ++ show x ++ " and " ++ show y ++ " is ")
+          print (x + y)
+          loop (n + 1)
+
+readPositive :: MonadTeletype io => io Integer
+readPositive = do
+  x <- readLn
+  if x < 0
+    then do
+      putStrLn "I don't like negative numbers at all."
+      putStr "Please try again: "
+      readPositive
+    else
+      return x
+`
+
+const greeter =
+`-- Example loaded: Greeter
+
+args :: Args
+args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = VerticalTrace } }
+
+specification :: Specification
+specification =
+  writeOutput [text "What is your name?"] <>
+  readInput name str AssumeValid <>
+  writeOutput [text "Hello, " <> resultOf (as @String $ currentValue name) <> text "!"]
+  where
+    name = stringVar "name"
+
+program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
+program = do
+  putStrLn "What is your name?"
+  name <- getLine
+  putStrLn $ "Hello, " ++ name ++ "!"
+`
+const palindrom =
+`-- Example loaded: Palindrom
+
+args :: Args
+args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = VerticalTrace } }
+
+specification :: Specification
+specification =
+  readInput x str AssumeValid <>
+  writeOutput [text "is palindrom? "] <>
+  branch (isPalindrom (currentValue x))
+    (writeOutput [text "True"])
+    (writeOutput [text "False"])
+  where
+    x = stringVar "x"
+
+    isPalindrom :: Term k String -> Term k Bool
+    isPalindrom x = x .==. reverse' x
+
+program :: MonadTeletype io => io ()
+-- program = head (interpret specification) {- use this line to execute the specification itself -}
+program = do
+  x <- getLine
+  putStr "is palindrom? "
+  print (reverse x == x)
 `
