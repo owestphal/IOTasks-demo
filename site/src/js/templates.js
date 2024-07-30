@@ -9,7 +9,7 @@ export
   , stringExample
   , untilValidExample
   , greeter
-  , palindrom
+  , palindrome
   , constraintSetup
   , randomSetup
   }
@@ -424,8 +424,8 @@ program = do
   name <- getLine
   putStrLn $ "Hello, " ++ name ++ "!"
 `
-const palindrom =
-`-- Example loaded: Palindrom
+const palindrome =
+`-- Example loaded: Palindrome
 
 args :: Args
 args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = VerticalTrace } }
@@ -433,20 +433,20 @@ args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceSt
 specification :: Specification
 specification =
   readInput x str AssumeValid <>
-  writeOutput [text "is palindrom? "] <>
-  branch (isPalindrom (currentValue x))
+  writeOutput [text "is palindrome? "] <>
+  branch (isPalindrome (currentValue x))
     (writeOutput [text "True"])
     (writeOutput [text "False"])
   where
     x = stringVar "x"
 
-    isPalindrom :: Term k String -> Term k Bool
-    isPalindrom x = x .==. reverse' x
+    isPalindrome :: Term k String -> Term k Bool
+    isPalindrome x = x .==. reverse' x
 
 program :: MonadTeletype io => io ()
 -- program = head (interpret specification) {- use this line to execute the specification itself -}
 program = do
   x <- getLine
-  putStr "is palindrom? "
+  putStr "is palindrome? "
   print (reverse x == x)
 `

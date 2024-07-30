@@ -22,7 +22,7 @@ import { emptyTemplate
        , stringExample
        , untilValidExample
        , greeter
-       , palindrom
+       , palindrome
        , constraintSetup
        , randomSetup
     } from "./templates.js"
@@ -329,7 +329,7 @@ setupButtons(
   , {buttonId: "btn-stringExample", action: loadExample(stringExample)}
   , {buttonId: "btn-untilValid", action: loadExample(untilValidExample)}
   , {buttonId: "btn-greeter", action: loadExample(greeter)}
-  , {buttonId: "btn-palindrom", action: loadExample(palindrom)}
+  , {buttonId: "btn-palindrome", action: loadExample(palindrome)}
   , {buttonId: "compile-button", action: sendSrc}
 
   , {buttonId: "run-button", action: (() => appState.runMethod())}
