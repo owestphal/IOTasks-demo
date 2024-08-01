@@ -128,7 +128,7 @@ program = do
 `
 
 const sumToZero =
-`-- Example loaded: Sum to zero
+`-- Example loaded: Sum up to zero
 
 args :: Args
 args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = HorizontalTrace } }

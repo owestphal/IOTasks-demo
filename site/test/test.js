@@ -28,7 +28,7 @@ function compileExample(example,random=false){
 describe("Example compilation", () => {
   ["Sum"
   ,"Sum, with optional output"
-  ,"Sum to zero"
+  ,"Sum up to zero"
   ,"Product (potential for overflows)"
   ,"Single path"
   ,"Exponentially many sat. paths"
