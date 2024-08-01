@@ -1,12 +1,15 @@
 remote_server := iotasks-demo
 service_name := iotasks-demo.service
 
-.PHONY build:
+.PHONY: build
+build:
 	stack build
 
-.PHONY docker: build
+.PHONY: docker
+docker: build
 	docker build -t fmidue/iotask-demo-backend .
 
-.PHONY deploy: docker
+.PHONY: deploy
+deploy: docker
 	docker save fmidue/iotask-demo-backend:latest | ssh $(remote_server) docker load
 	ssh $(remote_server) systemctl restart $(service_name)
