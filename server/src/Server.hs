@@ -30,16 +30,17 @@ import System.Timeout (timeout)
 
 import Test.IOTasks as Constraints (Specification, Args(..), runSpecification)
 import Test.IOTasks.Random as Random (Args(..), genInput)
-import Test.IOTasks.Constraints (paths,constraintTree, pathDepth)
+import Test.IOTasks.Constraints (constraintTree, pathDepth, simplePaths, SimplePath, completePath)
 import Test.IOTasks.Trace (normalizedTrace, showTraceN)
 import Test.IOTasks.ValueSet (Size(..))
-import Test.IOTasks.Z3 (evalPathScript, SatResult (..), satPathsQ, findPathInput)
+import Test.IOTasks.Z3 (evalPathScript, SatResult (..), satPathsQ, findPathInput, mkPathInjector, PathInjector (injectNegatives))
 
 import Test.QuickCheck (generate)
 
 import Context
 import MonitoredIO
 import Test.IOTasks.Overflow
+import Test.QuickCheck.Gen (oneof)
 
 runMain :: IO ()
 runMain = do
@@ -185,27 +186,60 @@ sampleInput (ConstraintSession s t Constraints.Args{..} _ _)  = do
         mp <- atomically $ readTQueue qVar
         case mp of
           Just p -> do
-            res <- findPathInput solverTimeout p valueSize solverMaxSeqLength avoidOverflows
-            case res of
-              SAT i -> print i >> outputInputs (x-1)
-              Timeout -> outputInputs x
-              NotSAT -> outputInputs x
+            injector <- mkPathInjector p solverTimeout solverMaxSeqLength avoidOverflows
+
+            cp1 <- generate $ injectNegatives injector 0
+            res1 <- findPathInput solverTimeout cp1 valueSize solverMaxSeqLength avoidOverflows
+            success1 <- printSat res1
+
+            let x' = x - if success1 then 1 else 0
+            success2 <- if x' > 0
+              then do
+                cp2 <- generate $ injectNegatives injector maxNegative
+                res2 <- findPathInput solverTimeout cp2 valueSize solverMaxSeqLength avoidOverflows
+                printSat res2
+              else pure False
+            let x'' = x' - if success2 then 1 else 0
+            outputInputs x''
+
           Nothing -> pure ()
     concurrently_
-      (satPathsQ nVar solverTimeout (constraintTree maxNegative s) maxIterationUnfold solverMaxSeqLength avoidOverflows qVar)
+      (satPathsQ nVar solverTimeout (constraintTree s) maxIterationUnfold solverMaxSeqLength avoidOverflows qVar)
       (outputInputs n)
   putStrLn "INFO: terminated"
+
+printSat :: Show a => SatResult a -> IO Bool
+printSat (SAT x) = print x >> pure True
+printSat _ = pure False
 
 smtCode :: SessionState ConstraintType -> IO ()
 smtCode (ConstraintSession s t Constraints.Args{..} _ _) = do
   n <- readLn
   abortable t $ do
-    let ps = filter ((== n) . pathDepth) $ paths n $ constraintTree maxNegative s
-    forM_ ps $ \p -> do
-      res <- evalPathScript solverTimeout p valueSize solverMaxSeqLength avoidOverflows
+    let (negativesNotNeeded,negativesNeeded) = relevantPaths n $ simplePaths n $ constraintTree s
+
+    forM_ negativesNotNeeded $ \p -> do
+      let cp = completePath [] p
+      res <- evalPathScript solverTimeout cp valueSize solverMaxSeqLength avoidOverflows
+      outputSMTProblem res
+      putStrLn "INFO: end of smt problem"
+
+    forM_ negativesNeeded $ \p -> do
+      injector <- mkPathInjector p solverTimeout solverMaxSeqLength avoidOverflows
+      cp <- generate $ injectNegatives injector maxNegative
+      res <- evalPathScript solverTimeout cp valueSize solverMaxSeqLength avoidOverflows
       outputSMTProblem res
       putStrLn "INFO: end of smt problem"
   putStrLn "INFO: terminated"
+  where
+    relevantPaths :: Int -> [SimplePath] -> ([SimplePath],[SimplePath])
+    relevantPaths n = foldr f ([],[]) where
+      f p (xs,ys)
+        | baseDepth == n = (p:xs,ys)
+        | maxNegative > 0 && baseDepth + maxNegative== n = (xs,p:ys)
+        | otherwise = (xs,ys)
+        where
+          baseDepth = pathDepth $ completePath [] p
 
 outputSMTProblem :: (SatResult [String], String) -> IO ()
 outputSMTProblem (res, code) = do

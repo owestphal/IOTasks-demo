@@ -55,7 +55,7 @@ args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceSt
 specification :: Specification
 specification =
   readInput n nats AssumeValid <>
-  whileNot (length' (as @[Integer] $ allValues x) .==. currentValue n) (
+  whileNot (length' (allValues x) .==. currentValue n) (
     readInput x ints AssumeValid
   ) <>
   writeOutput [resultOf $ sum' $ allValues x]
@@ -94,8 +94,8 @@ args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceSt
 specification :: Specification
 specification =
   readInput n nats AssumeValid <>
-  whileNot (length' (as @[Integer] $ allValues x) .==. currentValue n) (
-    writeOptionalOutput [resultOf $ currentValue n .-. length' (as @[Integer] $ allValues x)] <>
+  whileNot (length' (allValues x) .==. currentValue n) (
+    writeOptionalOutput [resultOf $ currentValue n .-. length' (allValues x)] <>
     readInput x ints AssumeValid
   ) <>
   writeOutput [resultOf $ sum' $ allValues x]
@@ -138,7 +138,7 @@ specification =
   readInput x ints AssumeValid <>
   (readInput x ints AssumeValid
   \`repeatUntil\` (valueBefore 1 x .+. currentValue x .==. intLit 0)) <>
-  writeOutput [resultOf $ length' $ as @[Integer] $ allValues x]
+  writeOutput [resultOf $ length' $ allValues x]
   where
     x = intVar "x"
 
@@ -170,7 +170,7 @@ args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceSt
 
 specification :: Specification
 specification =
-  while (length' (as @[Integer] $ allValues x) .<. intLit 2) (
+  while (length' (allValues x) .<. intLit 2) (
     readInput x nats AssumeValid
   )
   where x = intVar "x"
@@ -194,7 +194,7 @@ args = stdArgs { avoidOverflows = True, feedbackStyle = FeedbackStyle { simplify
 specification :: Specification
 specification =
   readInput n nats AssumeValid <>
-  whileNot (length' (as @[Integer] $ allValues x) .==. currentValue n) (
+  whileNot (length' (allValues x) .==. currentValue n) (
     readInput x ints AssumeValid
   ) <>
   writeOutput [resultOf $ product' $ allValues x]
@@ -235,7 +235,7 @@ args = stdArgs{ maxIterationUnfold = 10, feedbackStyle = FeedbackStyle { simplif
 specification :: Specification
 specification =
   readInput x ints AssumeValid <>
-  whileNot (sum' (as @[Integer] $ allValues x) .>. intLit 0) (
+  whileNot (sum' (allValues x) .>. intLit 0) (
     readInput x ints AssumeValid <>
     branch (currentValue x .>. intLit 0)
       (writeOutput [text "positive"])
@@ -298,7 +298,7 @@ specification =
        readInput y ints AssumeValid <>
        writeOutput [wildcard <> resultOf (currentValue x .+. currentValue y) <> wildcard])
   ) <>
-  writeOutput [wildcard <> resultOf (length' $ as @[Integer] $ allValues y) <> wildcard]
+  writeOutput [wildcard <> resultOf (length' $ allValues y) <> wildcard]
   where
     x = intVar "x"
     y = intVar "y"
@@ -339,7 +339,7 @@ const untilValidExample =
 `-- Example loaded: Handling ill-formed inputs
 
 args :: Args
-args = stdArgs{ maxNegative = 2, maxIterationUnfold = 10, feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = VerticalTrace } }
+args = stdArgs{ feedbackStyle = FeedbackStyle { simplifyFeedback = True, traceStyle = VerticalTrace } }
 
 specification :: Specification
 specification =
@@ -352,7 +352,7 @@ specification =
        readInput y nats UntilValid <>
        writeOutput [wildcard <> resultOf (currentValue x .+. currentValue y) <> wildcard])
   ) <>
-  writeOutput [wildcard <> resultOf (length' $ as @[Integer] $ allValues y) <> wildcard]
+  writeOutput [wildcard <> resultOf (length' $ allValues y) <> wildcard]
   where
     x = intVar "x"
     y = intVar "y"
@@ -413,7 +413,7 @@ specification :: Specification
 specification =
   writeOutput [text "What is your name?"] <>
   readInput name str AssumeValid <>
-  writeOutput [text "Hello, " <> resultOf (as @String $ currentValue name) <> text "!"]
+  writeOutput [text "Hello, " <> resultOf (currentValue name) <> text "!"]
   where
     name = stringVar "name"
 
