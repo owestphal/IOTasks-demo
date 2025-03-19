@@ -169,7 +169,7 @@ sampleInput :: SessionState a -> IO ()
 sampleInput (RandomSession s t Random.Args{..} _ _)  = do
   n <- readLn
   abortable t $ replicateM_ n $ do
-    i <- generate $ Random.genInput s maxInputLength (Size valueSize (fromIntegral $ valueSize `div` 5)) maxNegative
+    i <- generate $ Random.genInput s maxInputLength (Size inputRange (fromIntegral $ inputRange `div` 5)) maxNegative
     print i
   putStrLn "INFO: terminated"
 sampleInput (ConstraintSession s t Constraints.Args{..} _ _)  = do
@@ -189,14 +189,14 @@ sampleInput (ConstraintSession s t Constraints.Args{..} _ _)  = do
             injector <- mkPathInjector p solverTimeout solverMaxSeqLength avoidOverflows
 
             cp1 <- generate $ injectNegatives injector 0
-            res1 <- findPathInput solverTimeout cp1 valueSize solverMaxSeqLength avoidOverflows
+            res1 <- findPathInput solverTimeout cp1 inputRange solverMaxSeqLength avoidOverflows
             success1 <- printSat res1
 
             let x' = x - if success1 then 1 else 0
             success2 <- if x' > 0
               then do
                 cp2 <- generate $ injectNegatives injector maxNegative
-                res2 <- findPathInput solverTimeout cp2 valueSize solverMaxSeqLength avoidOverflows
+                res2 <- findPathInput solverTimeout cp2 inputRange solverMaxSeqLength avoidOverflows
                 printSat res2
               else pure False
             let x'' = x' - if success2 then 1 else 0
@@ -220,14 +220,14 @@ smtCode (ConstraintSession s t Constraints.Args{..} _ _) = do
 
     forM_ negativesNotNeeded $ \p -> do
       let cp = completePath [] p
-      res <- evalPathScript solverTimeout cp valueSize solverMaxSeqLength avoidOverflows
+      res <- evalPathScript solverTimeout cp inputRange solverMaxSeqLength avoidOverflows
       outputSMTProblem res
       putStrLn "INFO: end of smt problem"
 
     forM_ negativesNeeded $ \p -> do
       injector <- mkPathInjector p solverTimeout solverMaxSeqLength avoidOverflows
       cp <- generate $ injectNegatives injector maxNegative
-      res <- evalPathScript solverTimeout cp valueSize solverMaxSeqLength avoidOverflows
+      res <- evalPathScript solverTimeout cp inputRange solverMaxSeqLength avoidOverflows
       outputSMTProblem res
       putStrLn "INFO: end of smt problem"
   putStrLn "INFO: terminated"
