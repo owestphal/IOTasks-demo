@@ -1,3 +1,3 @@
 export {websocketURL}
 
-const websocketURL = "wss://iotasks.eu:8080/"
+const websocketURL = "wss://iotasks.eu/ghc-interface/"
