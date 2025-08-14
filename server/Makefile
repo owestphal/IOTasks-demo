@@ -1,4 +1,4 @@
-remote_server := iotasks-demo
+remote_server := autotool
 service_name := iotasks-demo.service
 
 .PHONY: build
