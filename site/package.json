@@ -28,7 +28,7 @@
     "start": "parcel src/index.html --no-cache",
     "build": "rm -rf dist && parcel build src/index.html --no-source-maps --public-url ./",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
-    "predeploy": "rm -rf dist && parcel build src/index.html --no-source-maps --public-url ./",
+    "predeploy": "rm -rf dist && parcel build src/index.html --no-source-maps --public-url ./ && rm dist/datenschutz.html",
     "deploy": "ssh autotool 'find /var/www/iotasks/ ! -name 'datenschutz.html' -type f -exec rm {} +' && scp dist/* autotool:/var/www/iotasks"
   }
 }
